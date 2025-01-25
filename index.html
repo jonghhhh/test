@@ -7,10 +7,19 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.2;
-            margin: 20px;
+            line-height: 1.0;
+            margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
             color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             position: relative;
         }
         h1 {
@@ -22,15 +31,9 @@
             padding: 10px;
             border-radius: 10px;
         }
-        h2 {
-            font-size: 2em;
-            margin-top: 1.5em;
+        h2, h3 {
             color: #1d3557;
-        }
-        h3 {
-            font-size: 1.5em;
-            margin-top: 1em;
-            color: #457b9d;
+            margin-top: 1.5em;
         }
         p {
             margin: 0.5em 0;
@@ -38,14 +41,6 @@
             background: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .btn {
             display: inline-block;
@@ -55,6 +50,7 @@
             color: #fff;
             text-decoration: none;
             border-radius: 5px;
+            text-align: center;
         }
         .btn:hover {
             background-color: #457b9d;
@@ -84,37 +80,43 @@
             text-align: center;
             color: #666;
         }
+        .background-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 400px;
+            opacity: 0.2;
+            z-index: -1;
+        }
+        .reduced-line-height {
+            line-height: 0.5;
+        }
         @media (max-width: 768px) {
             h1 {
                 font-size: 2em;
             }
-            h2 {
-                font-size: 1.8em;
-            }
-            h3 {
+            h2, h3 {
                 font-size: 1.4em;
             }
-            table {
+            p, table {
                 font-size: 0.9em;
             }
-        }
-        /* Custom background image style */
-        .background-image {
-            position: absolute;
-            top: 400px;
-            right: 400px;
-            width: 400px;
-            height: auto;
-            opacity: 1.0;
-            z-index: 0 ;
+            .btn {
+                padding: 8px 15px;
+            }
+            .background-image {
+                width: 90%;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Background Image -->
     <img class="background-image" src="파이썬워크숍배경.png" alt="배경 이미지">
     <div class="container">
-        <h1><문과생을 위한 AI 활용 파이썬 코딩> 동계 워크숍</h1>
+        <h1 class="reduced-line-height"><문과생을 위한 AI 활용 파이썬 코딩></h1>
+        <h1>동계 워크숍</h1>
         <h3>수강대상:</h3>
         <p>생성형 AI를 활용해 파이썬 코딩을 완전기초부터 고급활용까지 경험하고 싶은 대학생 누구나 가능(무료)</p>
 
@@ -207,5 +209,6 @@
     </div>
 </body>
 </html>
+
 
 
