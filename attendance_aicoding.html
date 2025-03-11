@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인공지능미디어코딩 출석 점검</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            width: 16.66%;
+        }
+        .student-item {
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .student-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .highlight {
+            background-color: lightgreen;
+        }
+        .absent {
+            color: red;
+            font-weight: bold;
+        }
+        button {
+            padding: 3px;
+            font-size: 10px;
+        }
+        #volume-control {
+            width: 200px;
+        }
+        .version-toggle {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>인공지능미디어코딩 출석점검</h1>
+
+    <div class="controls">
+        <button onclick="startAttendanceCheck()">출석 확인 시작(화살표로 이동)</button>
+        <div>
+            <label for="volume-control">볼륨: </label>
+            <input type="range" id="volume-control" min="0" max="1" step="0.1" value="1">
+        </div>
+    </div>
+
+    <div class="version-toggle">
+        <button onclick="renderTable('version1')">버전 1: 이름 순서대로</button>
+        <button onclick="renderTable('version2')">버전 2: 이름 역순으로</button>
+    </div>
+
+    <table id="student-list">
+        <tbody></tbody>
+    </table>
+
+    <button onclick="saveAbsentees()">결석자 목록 저장</button>
+
+    <script>
+        const studentNames = [
+        "CHANG NAIWEN", "HUANG PINRUI", "WANG WENQING",
+        "강기현", "강유빈", "김미소", "김민욱", "김서연", "김시은", "김유진",
+        "나수현", "류은지", "류지민", "민병기", "박서연", "박성이", "박수민",
+        "성일", "신대완", "신유정", "양서윤", "유윤주", "이수연", "이진우",
+        "임세진", "정아름", "최규범", "최수민", "최윤서", "황선진"
+        ];
+        
+        // 외국 학생 이름과 한글 발음 매핑
+        const foreignNameMap = {
+            "CHANG NAIWEN": "창나이웬",
+            "HUANG PINRUI": "후앙핀루이",
+            "WANG WENQING": "왕웬칭"
+        };
+
+        const studentList = document.querySelector('#student-list tbody');
+
+        function renderTable(version) {
+            studentList.innerHTML = '';  // Clear the current table
+
+            let students = studentNames;
+            if (version === 'version2') {
+                students = [...studentNames].reverse();  // Reverse the names for Version 2
+            }
+
+            const totalStudents = students.length;
+            const cols = 6;
+            const rows = Math.ceil(totalStudents / cols);
+            
+            let index = 0;
+            for (let row = 0; row < rows; row++) {
+                const tr = document.createElement('tr');
+
+                for (let col = 0; col < cols; col++) {
+                    const td = document.createElement('td');
+                    td.classList.add('student-item');
+
+                    if (index < students.length) {
+                        td.innerHTML = `
+                            <span class="student-name">${students[index]}</span><br>
+                            <button onclick="toggleAttendance(this)">출석</button>
+                        `;
+                        index++;
+                    }
+                    tr.appendChild(td);
+                }
+                studentList.appendChild(tr);
+            }
+        }
+
+        // TTS 설정
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance();
+        utterance.lang = 'ko-KR';
+
+        // 볼륨 조절
+        const volumeControl = document.getElementById('volume-control');
+        volumeControl.addEventListener('input', function() {
+            utterance.volume = this.value;
+        });
+
+        function speak(text) {
+            // 외국 학생 이름인 경우 한글 발음으로 변경
+            if (foreignNameMap[text]) {
+                utterance.text = foreignNameMap[text];
+            } else {
+                utterance.text = text;
+            }
+            synth.speak(utterance);
+        }
+
+        function toggleAttendance(button) {
+            if (button.textContent === "출석") {
+                button.textContent = "결석";
+                button.classList.add("absent");
+            } else {
+                button.textContent = "출석";
+                button.classList.remove("absent");
+            }
+        }
+
+        function saveAbsentees() {
+            const absentees = [];
+            const today = new Date();
+            const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            absentees.push(`날짜: ${formattedDate}\n`);
+
+            const students = Array.from(studentList.querySelectorAll('.student-item'));
+            students.forEach(student => {
+                const button = student.querySelector('button');
+                if (button && button.textContent === "결석") {
+                    absentees.push(student.querySelector('.student-name').textContent);
+                }
+            });
+
+            const fileContent = absentees.join('\n');
+            const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `경제저널리즘_결석_${formattedDate}.txt`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        let currentIndex = -1;
+        let allStudents;
+
+        function startAttendanceCheck() {
+            speak("지금부터 출석 부르겠습니다");
+            allStudents = Array.from(studentList.querySelectorAll('.student-item'));
+            currentIndex = -1;  // Reset to start fresh
+        }
+
+        function highlightStudent(index) {
+            if (index >= 0 && index < allStudents.length) {
+                if (currentIndex >= 0) {
+                    allStudents[currentIndex].classList.remove('highlight');
+                }
+                allStudents[index].classList.add('highlight');
+                const nameElement = allStudents[index].querySelector('.student-name');
+                if (nameElement) {
+                    speak(nameElement.textContent);
+                }
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') {
+                currentIndex = Math.min(currentIndex + 1, allStudents.length - 1);
+                highlightStudent(currentIndex);
+            } else if (event.key === 'ArrowLeft') {
+                currentIndex = Math.max(currentIndex - 1, 0);
+                highlightStudent(currentIndex);
+            }
+        });
+
+        // 초기 렌더링 (버전 1)
+        renderTable('version1');
+    </script>
+</body>
+</html>
