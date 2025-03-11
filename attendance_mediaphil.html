@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매체철학 출석 점검</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+        .student-item {
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .student-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        button {
+            padding: 3px;
+            font-size: 10px;
+        }
+        .highlight {
+            background-color: lightgreen;
+        }
+        .absent {
+            color: red;
+            font-weight: bold;
+        }
+        #volume-control {
+            width: 200px;
+        }
+        .version-toggle {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>매체철학 출석점검</h1>
+
+    <div class="controls">
+        <button onclick="startAttendanceCheck()">출석 확인 시작(화살표로 이동)</button>
+        <div>
+            <label for="volume-control">볼륨: </label>
+            <input type="range" id="volume-control" min="0" max="1" step="0.1" value="1">
+        </div>
+    </div>
+
+    <div class="version-toggle">
+        <button onclick="renderTable('version1')">버전 1: 1조 → 9조</button>
+        <button onclick="renderTable('version2')">버전 2: 9조 → 1조</button>
+    </div>
+
+    <table id="student-list">
+        <thead>
+            <tr>
+                <th>조 이름</th>
+                <th>학생 1</th>
+                <th>학생 2</th>
+                <th>학생 3</th>
+                <th>학생 4</th>
+                <th>학생 5</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button onclick="saveAbsentees()">결석자 목록 저장</button>
+
+    <script>
+        // 조별로 배열 만들기
+        const studentGroups = [
+            { group: '1조', students: ["김용준", "이윤범", "김성주", "박지은", "황민주"] },
+            { group: '2조', students: ["민병기", "한근효", "Kumagai Airi", "남수민", "박채연"] },
+            { group: '3조', students: ["정진욱", "Li Jiaying", "송수현", "박채원", "김정하"] },
+            { group: '4조', students: ["윤성훈", "Mo Siyu", "엄은수", "송은영", "백승원"] },
+            { group: '5조', students: ["서정현", "Qian Huiying", "강수민", "이정민(112)", "이서연"] },
+            { group: '6조', students: ["김남훈", "Xu Tian", "김서연", "이정민(113)", "이수민"] },
+            { group: '7조', students: ["남예도", "Ye Wenting", "김효준", "장한나", "이은빈"] },
+            { group: '8조', students: ["김형훈", "Zhang Ying", "박나원", "정윤서", "이은영"] },
+            { group: '9조', students: ["김윤성", "Deng Zejun", "박수현", "주선제", "전윤서"] }
+        ];
+
+        const studentList = document.querySelector('#student-list tbody');
+
+        // 테이블 렌더링 함수
+        function renderTable(version) {
+            studentList.innerHTML = '';  // Clear the current table
+
+            let groups = studentGroups;
+            if (version === 'version2') {
+                groups = [...studentGroups].reverse();  // Reverse the groups for Version 2
+            }
+
+            groups.forEach(group => {
+                const row = document.createElement('tr');
+                const groupCell = document.createElement('td');
+                groupCell.textContent = group.group;
+                groupCell.style.fontWeight = 'bold';
+                row.appendChild(groupCell);
+
+                group.students.forEach(name => {
+                    const studentCell = document.createElement('td');
+                    studentCell.classList.add('student-item');
+                    studentCell.innerHTML = `
+                        <span class="student-name">${name}</span><br>
+                        <button onclick="toggleAttendance(this)">출석</button>
+                    `;
+                    row.appendChild(studentCell);
+                });
+
+                studentList.appendChild(row);
+            });
+        }
+
+        // 출석 처리 및 TTS
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance();
+        utterance.lang = 'ko-KR';
+
+        // 볼륨 조절
+        const volumeControl = document.getElementById('volume-control');
+        volumeControl.addEventListener('input', function() {
+            utterance.volume = this.value;
+        });
+
+        function speak(text) {
+            utterance.text = text;
+            synth.speak(utterance);
+        }
+
+        function toggleAttendance(button) {
+            if (button.textContent === "출석") {
+                button.textContent = "결석";
+                button.classList.add("absent");
+            } else {
+                button.textContent = "출석";
+                button.classList.remove("absent");
+            }
+        }
+
+        function saveAbsentees() {
+            const absentees = [];
+            const today = new Date();
+            const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            absentees.push(`날짜: ${formattedDate}\n`);
+
+            const students = Array.from(studentList.querySelectorAll('.student-item'));
+            students.forEach(student => {
+                const button = student.querySelector('button');
+                if (button.textContent === "결석") {
+                    absentees.push(student.querySelector('.student-name').textContent);
+                }
+            });
+
+            const blob = new Blob([absentees.join('\n')], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `매체철학_결석_${formattedDate}.txt`;
+            link.click();
+        }
+
+        let currentIndex = -1;
+        let allStudents;
+
+        function startAttendanceCheck() {
+            speak("지금부터 출석 부르겠습니다");
+            allStudents = Array.from(studentList.querySelectorAll('.student-item'));
+            currentIndex = -1;  // Reset to start fresh
+        }
+
+        function highlightStudent(index) {
+            if (index >= 0 && index < allStudents.length) {
+                if (currentIndex >= 0) {
+                    allStudents[currentIndex].classList.remove('highlight');
+                }
+                allStudents[index].classList.add('highlight');
+                const name = allStudents[index].querySelector('.student-name').textContent;
+                speak(name);
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') {
+                currentIndex = Math.min(currentIndex + 1, allStudents.length - 1);
+                highlightStudent(currentIndex);
+            } else if (event.key === 'ArrowLeft') {
+                currentIndex = Math.max(currentIndex - 1, 0);
+                highlightStudent(currentIndex);
+            }
+        });
+
+        // 초기 렌더링 (버전 1)
+        renderTable('version1');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
