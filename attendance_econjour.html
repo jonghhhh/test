@@ -156,9 +156,15 @@
       setupSpeechSynthesis() {
         const setVoices = () => {
           const voices = this.speechSynthesis.getVoices();
-          this.koreanVoice = voices.find(v => v.lang.includes('ko')) || voices.find(v => v.default);
+          console.log("사용 가능한 음성:", voices);
+          // ko-KR 우선, 없으면 첫 번째 음성 fallback
+          this.koreanVoice = voices.find(v => v.lang.includes('ko')) || voices[0];
         };
-        if (this.speechSynthesis.getVoices().length === 0) this.speechSynthesis.addEventListener('voiceschanged', setVoices); else setVoices();
+        if (this.speechSynthesis.getVoices().length === 0) {
+          this.speechSynthesis.addEventListener('voiceschanged', setVoices);
+        } else {
+          setVoices();
+        }
       }
       isKoreanName(name) { return /[가-힣]/.test(name); }
       convertToKoreanPronunciation(name) {
@@ -172,18 +178,14 @@
       }
       speakName(name) {
         this.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(
-          this.isKoreanName(name) ? name : this.convertToKoreanPronunciation(name)
-        );
-        utterance.voice = this.koreanVoice;
-        utterance.lang = 'ko-KR';
+        const text = this.isKoreanName(name) ? name : this.convertToKoreanPronunciation(name);
+        const utterance = new SpeechSynthesisUtterance(text);
+      
+        if (this.koreanVoice) utterance.voice = this.koreanVoice;
+        utterance.lang = (this.koreanVoice && this.koreanVoice.lang) ? this.koreanVoice.lang : 'ko-KR';
         utterance.rate = 0.9;
         utterance.pitch = 1;
         utterance.volume = this.currentVolume;
-      
-        // 디버깅용 이벤트 (잘리는 현상 확인 가능)
-        utterance.onstart = () => console.log("🔊 시작:", utterance.text);
-        utterance.onend = () => console.log("✅ 끝:", utterance.text);
       
         this.speechSynthesis.speak(utterance);
       }
