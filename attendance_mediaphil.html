@@ -38,10 +38,15 @@
       min-width: 50px; text-align: center; font-weight: bold;
       background: #f1f3f5; border-radius: 6px; padding: 5px;
     }
-    .group-members { display: flex; gap: 5px; flex-wrap: nowrap; }
+    .group-members { display: flex; gap: 10px; flex: 1; }
     .student-card {
-      padding: 5px; border: 1px solid #ccc; border-radius: 6px;
-      text-align: center; font-size: 0.8rem; min-width: 100px;
+      flex: 1;            /* 카드가 자동으로 동일한 너비 차지 */
+      min-width: 140px;   /* 기존 100px → 140px 정도로 확대 */
+      padding: 8px 10px;  /* 가로 폭을 조금 넓게 */
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 0.9rem;
     }
     .student-card.present { background: #d4edda; border-color: #28a745; }
     .student-card.absent { background: #f8d7da; border-color: #dc3545; }
