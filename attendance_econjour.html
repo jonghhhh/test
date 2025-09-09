@@ -35,14 +35,11 @@
     .student-actions { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
     .students-grid { padding: 30px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .student-card { padding: 15px; border: 2px solid #e9ecef; border-radius: 12px; text-align: center; transition: all 0.3s ease; cursor: pointer; background: white; }
     .student-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     .student-card.present { border-color: #28a745; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); }
     .student-card.absent { border-color: #dc3545; background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); }
     .student-card.current { border-color: #ffc107; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); animation: pulse 2s infinite; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-    .student-name-card { font-weight: bold; font-size: 0.8rem; color: #333; }
-    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-top: 8px; }
     .present-badge { background: #28a745; color: white; }
     .absent-badge { background: #dc3545; color: white; }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px; }
@@ -50,6 +47,30 @@
     .stat-number { font-size: 2rem; font-weight: bold; color: #667eea; }
     .stat-label { color: #666; font-size: 0.9rem; margin-top: 5px; }
     .export-section { background: #f8f9fa; padding: 20px; border-top: 1px solid #dee2e6; text-align: center; }
+    .student-card {
+      padding: 6px 8px;         /* 세로 여백 줄임 */
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      background: white;
+      line-height: 1.2;         /* 줄간격 조정 */
+    }
+    .student-name-card {
+      font-weight: bold;
+      font-size: 0.75rem;       /* 글자 크기 소폭 축소 */
+      color: #333;
+      margin: 0;                /* 위아래 여백 제거 */
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 6px;         /* 배지 높이 축소 */
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      margin-top: 2px;          /* 배지와 이름 사이 여백 최소화 */
+    }
   </style>
 </head>
 <body>
