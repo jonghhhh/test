@@ -172,16 +172,20 @@
       }
       speakName(name) {
         this.speechSynthesis.cancel();
-        const dummy = new SpeechSynthesisUtterance("a");
-        dummy.volume = 0; dummy.rate = 10; dummy.lang = 'en-US';
-        const utterance = new SpeechSynthesisUtterance(this.isKoreanName(name) ? name : this.convertToKoreanPronunciation(name));
+        const utterance = new SpeechSynthesisUtterance(
+          this.isKoreanName(name) ? name : this.convertToKoreanPronunciation(name)
+        );
         utterance.voice = this.koreanVoice;
         utterance.lang = 'ko-KR';
         utterance.rate = 0.9;
         utterance.pitch = 1;
         utterance.volume = this.currentVolume;
-        dummy.onend = () => { this.speechSynthesis.speak(utterance); };
-        this.speechSynthesis.speak(dummy);
+      
+        // 디버깅용 이벤트 (잘리는 현상 확인 가능)
+        utterance.onstart = () => console.log("🔊 시작:", utterance.text);
+        utterance.onend = () => console.log("✅ 끝:", utterance.text);
+      
+        this.speechSynthesis.speak(utterance);
       }
       startAttendance() {
         this.isRunning = true;
