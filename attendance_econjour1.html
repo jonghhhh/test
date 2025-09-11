@@ -176,18 +176,48 @@
         };
         return map[name] || name;
       }
+      setupSpeechSynthesis() {
+        const setVoices = () => {
+          const voices = this.speechSynthesis.getVoices();
+          this.koreanVoice = voices.find(v => v.lang.includes('ko')) || voices[0];
+
+          // 🔹 워밍업: 아주 짧게 "준비" 읽게 해서 첫 발화 잘림 방지
+          const warmup = new SpeechSynthesisUtterance("준비");
+          warmup.voice = this.koreanVoice;
+          warmup.lang = this.koreanVoice?.lang || "ko-KR";
+          warmup.volume = 0;   // 실제로는 들리지 않음
+          this.speechSynthesis.speak(warmup);
+        };
+
+        if (this.speechSynthesis.getVoices().length === 0) {
+          this.speechSynthesis.addEventListener('voiceschanged', setVoices);
+        } else {
+          setVoices();
+        }
+      }
       speakName(name) {
         this.speechSynthesis.cancel();
         const text = this.isKoreanName(name) ? name : this.convertToKoreanPronunciation(name);
         const utterance = new SpeechSynthesisUtterance(text);
-      
+
         if (this.koreanVoice) utterance.voice = this.koreanVoice;
-        utterance.lang = (this.koreanVoice && this.koreanVoice.lang) ? this.koreanVoice.lang : 'ko-KR';
+        utterance.lang = this.koreanVoice?.lang || 'ko-KR';
         utterance.rate = 0.9;
         utterance.pitch = 1;
         utterance.volume = this.currentVolume;
-      
-        this.speechSynthesis.speak(utterance);
+
+        // 🔹 앞 4명까지는 지연 길이를 다르게 줌
+        let delay = 0;
+        if (this.currentIndex === 0) delay = 800;   // 첫 번째 학생은 0.8초
+        else if (this.currentIndex === 1) delay = 600;
+        else if (this.currentIndex === 2) delay = 400;
+        else if (this.currentIndex === 3) delay = 300;
+
+        if (delay > 0) {
+          setTimeout(() => this.speechSynthesis.speak(utterance), delay);
+        } else {
+          this.speechSynthesis.speak(utterance);
+        }
       }
       startAttendance() {
         this.isRunning = true;
@@ -284,3 +314,4 @@
   </script>
 </body>
 </html>
+
