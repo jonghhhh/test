@@ -98,7 +98,15 @@
   <script>
     class AttendanceSystem {
       constructor() {
-        this.students = [ /* 학생 리스트 50명 배열 (생략) */ ];
+        this.students = [
+          "BI SUMO","BUI LAN NHI","CHAI YIPING","CHEN HSIHOU","CHIANG NING YU",
+          "DEMBEREL BADAMTSETSEG","EI THAZIN NWAY","GU WENJING","JIN LIXIA","JIN YUBIN","JIN ZHUHENG",
+          "LIGAY ANGELINA","MAI JINGYI","SHWE POE OU","SUN HAN","XIANG XIAOQIAN","YANG JING","YANG JINGXI",
+          "YAO JIAYU","ZHANG BEILEI","ZHANG WENBIN","ZHENG XIZHEN",
+          "강기현","김민희","김지민","김지호","김태우","김현준","박나원","박찬규","박희상","윤지완",
+          "이다빈","이덕수","이성은","이시온","이영기","이희재","장혜원","정유영","정은비","정태호",
+          "정혜빈","조유림","최민혁","최아람진","최윤서","최하진","하시언","황주성"
+        ];
         this.currentIndex = 0;
         this.attendanceData = {};
         this.isRunning = false;
@@ -143,8 +151,56 @@
         }
       }
 
+      quickWarmup(count = 2) {
+        return new Promise(resolve => {
+          let i = 0;
+          const run = () => {
+            if (i >= count) { resolve(); return; }
+            const utter = new SpeechSynthesisUtterance("준비");
+            utter.voice = this.koreanVoice;
+            utter.lang = this.koreanVoice?.lang || "ko-KR";
+            utter.volume = 0.01;
+            utter.rate = 2.0;
+            utter.onend = () => { i++; run(); };
+            this.speechSynthesis.speak(utter);
+          };
+          run();
+        });
+      }
+
+      isKoreanName(name) { return /[가-힣]/.test(name); }
+
+      convertToKoreanPronunciation(name) {
+        const map = {
+          "BI SUMO": "비 수모",
+          "BUI LAN NHI": "부이 란 니",
+          "CHAI YIPING": "차이 이핑",
+          "CHEN HSIHOU": "천 시호우",
+          "CHIANG NING YU": "치앙 닝위",
+          "DEMBEREL BADAMTSETSEG": "덴베렐 바담체체그",
+          "EI THAZIN NWAY": "에이 타진 느웨",
+          "GU WENJING": "구 원징",
+          "JIN LIXIA": "진 리샤",
+          "JIN YUBIN": "진 유빈",
+          "JIN ZHUHENG": "진 주헝",
+          "LIGAY ANGELINA": "리가이 안젤리나",
+          "MAI JINGYI": "마이 징이",
+          "SHWE POE OU": "쉐 포 오우",
+          "SUN HAN": "선 한",
+          "XIANG XIAOQIAN": "샹 샤오첸",
+          "YANG JING": "양 징",
+          "YANG JINGXI": "양 징시",
+          "YAO JIAYU": "야오 지아유",
+          "ZHANG BEILEI": "장 베이레이",
+          "ZHANG WENBIN": "장 웬빈",
+          "ZHENG XIZHEN": "정 시전"
+        };
+        return map[name] || name;
+      }
+
       speakName(name) {
-        const utterance = new SpeechSynthesisUtterance(name);
+        const text = this.isKoreanName(name) ? name : this.convertToKoreanPronunciation(name);
+        const utterance = new SpeechSynthesisUtterance(text);
         if (this.koreanVoice) utterance.voice = this.koreanVoice;
         utterance.lang = this.koreanVoice?.lang || 'ko-KR';
         utterance.rate = 0.9;
@@ -158,14 +214,7 @@
         document.getElementById('startBtn').disabled = true;
         document.getElementById('pauseBtn').disabled = false;
         this.currentIndex = this.isReverse ? this.students.length - 1 : 0;
-
-        // ✅ 출석 시작 안내 멘트 (첫 학생 전용)
-        const intro = new SpeechSynthesisUtterance("출석을 시작합니다");
-        intro.voice = this.koreanVoice;
-        intro.lang = this.koreanVoice?.lang || "ko-KR";
-        intro.volume = this.currentVolume;
-        intro.onend = () => { this.callNextStudent(); };
-        this.speechSynthesis.speak(intro);
+        this.quickWarmup(2).then(() => { this.callNextStudent(); });
       }
 
       pauseAttendance() { 
@@ -201,7 +250,7 @@
         if (this.currentIndex >= 0 && this.currentIndex < this.students.length) {
           const name = this.students[this.currentIndex];
           this.speechSynthesis.cancel();
-          setTimeout(() => { this.speakName(name); }, 300); // 🔧 300ms 지연
+          setTimeout(() => { this.speakName(name); }, 250);
         }
       }
 
@@ -215,6 +264,7 @@
         this.currentIndex += this.isReverse ? -1 : 1;
         if (this.currentIndex >= 0 && this.currentIndex < this.students.length) {
           this.callNextStudent();
+          this.speakCurrentStudent(); // 🔊 다음 학생 자동 발음
         } else {
           this.pauseAttendance(); 
           alert('모든 학생의 출석을 완료했습니다!');
@@ -292,4 +342,5 @@
   </script>
 </body>
 </html>
+
 
