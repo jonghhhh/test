@@ -1,781 +1,378 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>언론사 취업 스터디 매칭</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(45deg, #2c3e50, #3498db);
-            color: white;
-            text-align: center;
-            padding: 30px 20px;
-        }
-
-        .header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border-left: 4px solid #3498db;
-        }
-
-        .section h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 5px;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            width: auto;
-            margin-right: 8px;
-            transform: scale(1.2);
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #3498db, #2980b9);
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-block;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-        }
-
-        .btn-danger:hover {
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(45deg, #27ae60, #229954);
-        }
-
-        .btn-success:hover {
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
-        }
-
-        .search-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 15px;
-            align-items: end;
-        }
-
-        .results {
-            margin-top: 20px;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e1e8ed;
-        }
-
-        .user-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid #3498db;
-        }
-
-        .notice {
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            border: 1px solid #ffeaa7;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #e1e8ed;
-            margin-bottom: 20px;
-        }
-
-        .tab {
-            padding: 12px 20px;
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 16px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .tab.active {
-            color: #3498db;
-            border-bottom-color: #3498db;
-        }
-
-        .tab:hover {
-            color: #3498db;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading.show {
-            display: block;
-        }
-
-        @media (max-width: 600px) {
-            .search-controls {
-                grid-template-columns: 1fr;
-            }
-            
-            .checkbox-group {
-                grid-template-columns: 1fr;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>언론사 취업 스터디 매칭</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(45deg, #2c3e50, #3498db);
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+    .header h1 { font-size: 2.2rem; margin-bottom: 10px; font-weight: 700; }
+    .header p { font-size: 1.1rem; opacity: 0.9; }
+    .content { padding: 30px; }
+    .section {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 25px;
+      border-left: 4px solid #3498db;
+    }
+    .section h2 { color: #2c3e50; margin-bottom: 15px; font-size: 1.5rem; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block; margin-bottom: 5px; font-weight: 600; color: #555;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 12px; border: 2px solid #e1e8ed; border-radius: 8px;
+      font-size: 14px; transition: border-color 0.3s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: #3498db;
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .checkbox-group {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px; margin-top: 5px;
+    }
+    .checkbox-item { display: flex; align-items: center; }
+    .checkbox-item input[type="checkbox"] {
+      width: auto; margin-right: 8px; transform: scale(1.2);
+    }
+    .btn {
+      background: linear-gradient(45deg, #3498db, #2980b9); color: white;
+      padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px;
+      font-weight: 600; cursor: pointer; transition: all 0.3s;
+      display: inline-block; text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52,152,219,0.4); }
+    .btn-danger { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+    .btn-danger:hover { box-shadow: 0 5px 15px rgba(231,76,60,0.4); }
+    .btn-success { background: linear-gradient(45deg, #27ae60, #229954); }
+    .btn-success:hover { box-shadow: 0 5px 15px rgba(39,174,96,0.4); }
+    .search-controls {
+      display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;
+    }
+    .results { margin-top: 20px; padding: 15px; background: white;
+      border-radius: 8px; border: 1px solid #e1e8ed; }
+    .user-card {
+      background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;
+      border-left: 4px solid #3498db;
+    }
+    .notice {
+      background: #fff3cd; color: #856404; padding: 12px; border-radius: 6px;
+      margin-bottom: 15px; border: 1px solid #ffeaa7;
+    }
+    .alert {
+      padding: 15px; border-radius: 8px; margin-bottom: 15px; font-weight: 500;
+    }
+    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .hidden { display: none !important; }
+    .tabs { display: flex; border-bottom: 2px solid #e1e8ed; margin-bottom: 20px; }
+    .tab {
+      padding: 12px 20px; background: none; border: none; color: #666;
+      font-size: 16px; cursor: pointer; border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+    .tab.active { color: #3498db; border-bottom-color: #3498db; }
+    .tab:hover { color: #3498db; }
+    .loading { display: none; text-align: center; padding: 20px; }
+    .loading.show { display: block; }
+    @media (max-width: 600px) {
+      .search-controls { grid-template-columns: 1fr; }
+      .checkbox-group { grid-template-columns: 1fr; }
+      .tabs { flex-wrap: wrap; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📰 언론사 취업 스터디 매칭</h1>
-            <p>언론사 취업을 준비하는 학생들을 위한 스터디 구성 플랫폼</p>
-        </div>
-        
-        <div class="content">
-            <!-- 알림 메시지 -->
-            <div id="alertDiv"></div>
-
-            <!-- 로딩 표시 -->
-            <div id="loading" class="loading">
-                <p>처리 중입니다...</p>
-            </div>
-
-            <!-- 로그인하지 않은 상태 -->
-            <div id="guestSection">
-                <div class="tabs">
-                    <button class="tab active" onclick="showTab('register')">회원 등록</button>
-                    <button class="tab" onclick="showTab('login')">로그인</button>
-                </div>
-
-                <!-- 회원 등록 -->
-                <div id="registerTab" class="section">
-                    <h2>📝 회원 등록</h2>
-                    <div class="notice">
-                        언론사 취업 스터디를 희망하는 학생들의 기초정보를 등록해주세요.<br>
-                        <strong>학번, 비밀번호, 이름, 이메일</strong>은 필수 입력사항입니다.<br>
-                        <strong>등록 후 로그인하여 다른 학생 검색 및 정보 변경이 가능합니다.</strong>
-                    </div>
-                    
-                    <form id="registerForm">
-                        <div class="form-group">
-                            <label>학번 *</label>
-                            <input type="text" id="studentId" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>비밀번호 *</label>
-                            <input type="password" id="password" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>이름 *</label>
-                            <input type="text" id="name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>이메일 *</label>
-                            <input type="email" id="email" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>휴대폰 (선택)</label>
-                            <input type="text" id="phone">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>희망 직종 (선택)</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="기자" id="job1">
-                                    <label for="job1">기자</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="시사교양PD" id="job2">
-                                    <label for="job2">시사교양PD</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="예능PD" id="job3">
-                                    <label for="job3">예능PD</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="드라마PD" id="job4">
-                                    <label for="job4">드라마PD</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>스터디 단계 (선택)</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="스터디초보자" id="stage1">
-                                    <label for="stage1">스터디초보자</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="스터디경험자중심" id="stage2">
-                                    <label for="stage2">스터디경험자중심</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="인터뷰중심" id="stage3">
-                                    <label for="stage3">인터뷰중심</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="스터디구성완료" id="stage4">
-                                    <label for="stage4">스터디구성완료</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>남기고 싶은 글 (선택)</label>
-                            <textarea id="message" placeholder="스터디원들에게 하고 싶은 말이나 본인 소개를 자유롭게 작성해주세요."></textarea>
-                        </div>
-                        
-                        <button type="submit" class="btn">등록하기</button>
-                    </form>
-                </div>
-
-                <!-- 로그인 -->
-                <div id="loginTab" class="section hidden">
-                    <h2>🔐 로그인</h2>
-                    <form id="loginForm">
-                        <div class="form-group">
-                            <label>학번</label>
-                            <input type="text" id="loginStudentId" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>비밀번호</label>
-                            <input type="password" id="loginPassword" required>
-                        </div>
-                        
-                        <button type="submit" class="btn">로그인</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 로그인한 상태 -->
-            <div id="userSection" class="hidden">
-                <div class="section" style="background: #e8f5e8;">
-                    <h2>👋 안녕하세요, <span id="userName"></span>님!</h2>
-                    <button onclick="logout()" class="btn" style="float: right;">로그아웃</button>
-                    <div style="clear: both;"></div>
-                </div>
-
-                <div class="tabs">
-                    <button class="tab active" onclick="showUserTab('search')">스터디원 검색</button>
-                    <button class="tab" onclick="showUserTab('update')">정보 수정</button>
-                </div>
-
-                <!-- 검색 -->
-                <div id="searchTab" class="section">
-                    <h2>🔍 스터디원 검색</h2>
-                    <div class="notice">
-                        희망하는 직종과 단계를 선택하여 함께할 스터디원을 찾아보세요.<br>
-                        <strong>기초정보를 등록한 학생들만 로그인 후 검색이 가능합니다.</strong>
-                    </div>
-                    
-                    <div class="search-controls">
-                        <div class="form-group">
-                            <label>희망 직종</label>
-                            <select id="searchJob">
-                                <option value="기자">기자</option>
-                                <option value="시사교양PD">시사교양PD</option>
-                                <option value="예능PD">예능PD</option>
-                                <option value="드라마PD">드라마PD</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>스터디 단계</label>
-                            <select id="searchStage">
-                                <option value="스터디초보자">스터디초보자</option>
-                                <option value="스터디경험자중심">스터디경험자중심</option>
-                                <option value="인터뷰중심">인터뷰중심</option>
-                                <option value="스터디구성완료">스터디구성완료</option>
-                            </select>
-                        </div>
-                        
-                        <button onclick="search()" class="btn">검색</button>
-                    </div>
-                    
-                    <div id="results" class="results hidden"></div>
-                </div>
-
-                <!-- 정보 수정 -->
-                <div id="updateTab" class="section hidden">
-                    <h2>✏️ 정보 수정 및 탈퇴</h2>
-                    <div class="notice">
-                        직종 변화나 스터디 구성 완료 등 상황 변화가 있을 경우 정보를 수정할 수 있습니다.<br>
-                        <strong>로그인 후에만 정보 수정 및 탈퇴가 가능합니다.</strong>
-                    </div>
-                    
-                    <form id="updateForm">
-                        <div class="form-group">
-                            <label>희망 직종</label>
-                            <div class="checkbox-group" id="updateJobs">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="기자" id="updateJob1">
-                                    <label for="updateJob1">기자</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="시사교양PD" id="updateJob2">
-                                    <label for="updateJob2">시사교양PD</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="예능PD" id="updateJob3">
-                                    <label for="updateJob3">예능PD</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="드라마PD" id="updateJob4">
-                                    <label for="updateJob4">드라마PD</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>스터디 단계</label>
-                            <div class="checkbox-group" id="updateStages">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="스터디초보자" id="updateStage1">
-                                    <label for="updateStage1">스터디초보자</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="스터디경험자중심" id="updateStage2">
-                                    <label for="updateStage2">스터디경험자중심</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="인터뷰중심" id="updateStage3">
-                                    <label for="updateStage3">인터뷰중심</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" value="스터디구성완료" id="updateStage4">
-                                    <label for="updateStage4">스터디구성완료</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>남기고 싶은 글</label>
-                            <textarea id="updateMessage" placeholder="스터디원들에게 하고 싶은 말이나 본인 소개를 자유롭게 작성해주세요."></textarea>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-success">정보 수정</button>
-                        <button type="button" onclick="deleteAccount()" class="btn btn-danger" style="margin-left: 10px;">탈퇴하기</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>📰 언론사 취업 스터디 매칭</h1>
+      <p>언론사 취업을 준비하는 학생들을 위한 스터디 구성 플랫폼</p>
     </div>
+    <div class="content">
+      <div id="alertDiv"></div>
+      <div id="loading" class="loading"><p>처리 중입니다...</p></div>
 
-    <script>
-        // Apps Script 웹앱 URL (실제 배포된 URL로 변경)
-        const API_URL = "https://script.google.com/macros/s/AKfycbwJcLKK0ffCcd1spyP-L3XHKqFBQ_N_qOGiS-n2PKJtUg5Ra_qt2x4mIVqJVeyQB2tvGA/exec";
-        
-        let currentUser = null;
+      <!-- 로그인 전 -->
+      <div id="guestSection">
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('register')">회원 등록</button>
+          <button class="tab" onclick="showTab('login')">로그인</button>
+        </div>
 
-        // 로딩 표시 함수
-        function showLoading(show = true) {
-            const loading = document.getElementById('loading');
-            if (show) {
-                loading.classList.add('show');
-            } else {
-                loading.classList.remove('show');
-            }
-        }
+        <!-- 회원 등록 -->
+        <div id="registerTab" class="section">
+          <h2>📝 회원 등록</h2>
+          <div class="notice">
+            학번, 비밀번호, 이름, 이메일은 필수입니다.
+          </div>
+          <form id="registerForm">
+            <div class="form-group"><label>학번 *</label><input type="text" id="studentId" required></div>
+            <div class="form-group"><label>비밀번호 *</label><input type="password" id="password" required></div>
+            <div class="form-group"><label>이름 *</label><input type="text" id="name" required></div>
+            <div class="form-group"><label>이메일 *</label><input type="email" id="email" required></div>
+            <div class="form-group"><label>휴대폰</label><input type="text" id="phone"></div>
+            <div class="form-group"><label>전공</label><input type="text" id="major"></div>
+            <div class="form-group">
+              <label>희망 직종</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" value="기자"> 기자</label>
+                <label><input type="checkbox" value="시사교양PD"> 시사교양PD</label>
+                <label><input type="checkbox" value="예능PD"> 예능PD</label>
+                <label><input type="checkbox" value="드라마PD"> 드라마PD</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>스터디 단계</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" value="스터디초보자"> 스터디초보자</label>
+                <label><input type="checkbox" value="스터디경험자중심"> 스터디경험자중심</label>
+                <label><input type="checkbox" value="인터뷰중심"> 인터뷰중심</label>
+                <label><input type="checkbox" value="스터디구성완료"> 스터디구성완료</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>남기고 싶은 글</label>
+              <textarea id="message"></textarea>
+            </div>
+            <button type="submit" class="btn">등록하기</button>
+          </form>
+        </div>
 
-        // 알림 메시지 표시
-        function showAlert(message, type = 'success') {
-            const alertDiv = document.getElementById('alertDiv');
-            alertDiv.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'error'}">${message}</div>`;
-            setTimeout(() => {
-                alertDiv.innerHTML = '';
-            }, 5000);
-        }
+        <!-- 로그인 -->
+        <div id="loginTab" class="section hidden">
+          <h2>🔐 로그인</h2>
+          <form id="loginForm">
+            <div class="form-group"><label>학번</label><input type="text" id="loginStudentId" required></div>
+            <div class="form-group"><label>비밀번호</label><input type="password" id="loginPassword" required></div>
+            <button type="submit" class="btn">로그인</button>
+          </form>
+        </div>
+      </div>
 
-        // 탭 전환 (비회원)
-        function showTab(tabName) {
-            document.querySelectorAll('#guestSection .tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('#guestSection > div:not(.tabs)').forEach(div => {
-                div.classList.add('hidden');
-            });
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.remove('hidden');
-        }
+      <!-- 로그인 후 -->
+      <div id="userSection" class="hidden">
+        <div class="section" style="background:#e8f5e8;">
+          <h2>👋 안녕하세요, <span id="userName"></span>님!</h2>
+          <button onclick="logout()" class="btn" style="float:right;">로그아웃</button>
+          <div style="clear:both;"></div>
+        </div>
 
-        // 탭 전환 (회원)
-        function showUserTab(tabName) {
-            document.querySelectorAll('#userSection .tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('#userSection > div:not(.tabs):not(:first-child)').forEach(div => {
-                div.classList.add('hidden');
-            });
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.remove('hidden');
-        }
+        <div class="tabs">
+          <button class="tab active" onclick="showUserTab('search')">스터디원 검색</button>
+          <button class="tab" onclick="showUserTab('update')">정보 수정</button>
+        </div>
 
-        // API 호출 함수 (CORS 대응)
-        async function callAPI(data) {
-            showLoading(true);
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                showLoading(false);
-                return result;
-            } catch (error) {
-                showLoading(false);
-                console.error('API 호출 오류:', error);
-                throw new Error('서버와 연결에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
-            }
-        }
+        <!-- 검색 -->
+        <div id="searchTab" class="section">
+          <h2>🔍 스터디원 검색</h2>
+          <div class="search-controls">
+            <div class="form-group">
+              <label>희망 직종</label>
+              <select id="searchJob">
+                <option value="기자">기자</option>
+                <option value="시사교양PD">시사교양PD</option>
+                <option value="예능PD">예능PD</option>
+                <option value="드라마PD">드라마PD</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>스터디 단계</label>
+              <select id="searchStage">
+                <option value="스터디초보자">스터디초보자</option>
+                <option value="스터디경험자중심">스터디경험자중심</option>
+                <option value="인터뷰중심">인터뷰중심</option>
+                <option value="스터디구성완료">스터디구성완료</option>
+              </select>
+            </div>
+            <button onclick="search()" class="btn">검색</button>
+          </div>
+          <div id="results" class="results hidden"></div>
+        </div>
 
-        // 회원 등록
-        document.getElementById("registerForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            const jobs = [...document.querySelectorAll("#registerForm input[type=checkbox]:checked")]
-                        .filter(c => ["기자","시사교양PD","예능PD","드라마PD"].includes(c.value))
-                        .map(c => c.value);
-            
-            const stages = [...document.querySelectorAll("#registerForm input[type=checkbox]:checked")]
-                        .filter(c => ["스터디초보자","스터디경험자중심","인터뷰중심","스터디구성완료"].includes(c.value))
-                        .map(c => c.value);
+        <!-- 정보 수정 -->
+        <div id="updateTab" class="section hidden">
+          <h2>✏️ 정보 수정</h2>
+          <form id="updateForm">
+            <div class="form-group"><label>전공</label><input type="text" id="updateMajor"></div>
+            <div class="form-group"><label>희망 직종</label>
+              <div class="checkbox-group" id="updateJobs">
+                <label><input type="checkbox" value="기자"> 기자</label>
+                <label><input type="checkbox" value="시사교양PD"> 시사교양PD</label>
+                <label><input type="checkbox" value="예능PD"> 예능PD</label>
+                <label><input type="checkbox" value="드라마PD"> 드라마PD</label>
+              </div>
+            </div>
+            <div class="form-group"><label>스터디 단계</label>
+              <div class="checkbox-group" id="updateStages">
+                <label><input type="checkbox" value="스터디초보자"> 스터디초보자</label>
+                <label><input type="checkbox" value="스터디경험자중심"> 스터디경험자중심</label>
+                <label><input type="checkbox" value="인터뷰중심"> 인터뷰중심</label>
+                <label><input type="checkbox" value="스터디구성완료"> 스터디구성완료</label>
+              </div>
+            </div>
+            <div class="form-group"><label>남기고 싶은 글</label>
+              <textarea id="updateMessage"></textarea></div>
+            <button type="submit" class="btn btn-success">정보 수정</button>
+            <button type="button" onclick="deleteAccount()" class="btn btn-danger">탈퇴</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            const body = {
-                action: "register",
-                studentId: document.getElementById("studentId").value,
-                password: document.getElementById("password").value,
-                name: document.getElementById("name").value,
-                email: document.getElementById("email").value,
-                phone: document.getElementById("phone").value,
-                jobs: jobs,
-                stages: stages,
-                message: document.getElementById("message").value
-            };
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbw5Dz9S6Fkam6b6_ZtjMUY3L3be0D_QUt-X_Id83uCCPy-NZyl97itlrrk27IYsltr-IQ/exec"; // Apps Script 배포 URL
 
-            try {
-                const data = await callAPI(body);
-                
-                if (data.status === "success") {
-                    showAlert(data.message, 'success');
-                    document.getElementById("registerForm").reset();
-                    // 등록 성공 시 로그인 탭으로 이동
-                    setTimeout(() => {
-                        showTab('login');
-                        showAlert("이제 로그인하여 스터디원을 찾아보세요!", 'success');
-                    }, 1500);
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
-        });
+  let currentUser = null;
 
-        // 로그인
-        document.getElementById("loginForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            const body = {
-                action: "login",
-                studentId: document.getElementById("loginStudentId").value,
-                password: document.getElementById("loginPassword").value
-            };
-
-            try {
-                const data = await callAPI(body);
-                
-                if (data.status === "success") {
-                    currentUser = data.user;
-                    document.getElementById("userName").textContent = currentUser.name;
-                    document.getElementById("guestSection").classList.add("hidden");
-                    document.getElementById("userSection").classList.remove("hidden");
-                    
-                    // 기존 정보로 수정 폼 채우기
-                    loadUserDataToUpdateForm();
-                    showAlert(`${data.user.name}님, 환영합니다!`, 'success');
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
-        });
-
-        // 사용자 데이터를 수정 폼에 로드
-        function loadUserDataToUpdateForm() {
-            const jobs = currentUser.jobs ? currentUser.jobs.split(",") : [];
-            const stages = currentUser.stages ? currentUser.stages.split(",") : [];
-            
-            // 직종 체크박스 설정
-            document.querySelectorAll("#updateJobs input[type=checkbox]").forEach(checkbox => {
-                checkbox.checked = jobs.includes(checkbox.value);
-            });
-            
-            // 단계 체크박스 설정
-            document.querySelectorAll("#updateStages input[type=checkbox]").forEach(checkbox => {
-                checkbox.checked = stages.includes(checkbox.value);
-            });
-            
-            // 메시지 설정
-            document.getElementById("updateMessage").value = currentUser.message || "";
-        }
-
-        // 검색 함수
-        async function search() {
-            const body = {
-                action: "search",
-                job: document.getElementById("searchJob").value,
-                stage: document.getElementById("searchStage").value,
-                currentUser: currentUser.studentId
-            };
-
-            try {
-                const data = await callAPI(body);
-                
-                if (data.status === "success") {
-                    const resultsDiv = document.getElementById("results");
-                    if (data.students.length === 0) {
-                        resultsDiv.innerHTML = '<div class="notice">조건에 맞는 스터디원을 찾을 수 없습니다.</div>';
-                    } else {
-                        resultsDiv.innerHTML = data.students.map(student => `
-                            <div class="user-card">
-                                <h4>${student.name} (${student.studentId})</h4>
-                                <p><strong>이메일:</strong> ${student.email}</p>
-                                <p><strong>연락처:</strong> ${student.phone || '미입력'}</p>
-                                <p><strong>희망직종:</strong> ${student.jobs || '미선택'}</p>
-                                <p><strong>스터디단계:</strong> ${student.stages || '미선택'}</p>
-                                <p><strong>남긴 글:</strong> ${student.message || '없음'}</p>
-                            </div>
-                        `).join("");
-                    }
-                    resultsDiv.classList.remove("hidden");
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
-        }
-
-        // 정보 수정
-        document.getElementById("updateForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            const jobs = [...document.querySelectorAll("#updateJobs input[type=checkbox]:checked")]
-                        .map(c => c.value);
-            
-            const stages = [...document.querySelectorAll("#updateStages input[type=checkbox]:checked")]
-                        .map(c => c.value);
-
-            const body = {
-                action: "update",
-                studentId: currentUser.studentId,
-                jobs: jobs,
-                stages: stages,
-                message: document.getElementById("updateMessage").value
-            };
-
-            try {
-                const data = await callAPI(body);
-                
-                if (data.status === "success") {
-                    showAlert(data.message, 'success');
-                    // 현재 사용자 정보 업데이트
-                    currentUser.jobs = jobs.join(",");
-                    currentUser.stages = stages.join(",");
-                    currentUser.message = document.getElementById("updateMessage").value;
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
-        });
-
-        // 탈퇴
-        async function deleteAccount() {
-            if (!confirm("정말 탈퇴하시겠습니까? 이 작업은 취소할 수 없습니다.")) {
-                return;
-            }
-
-            const body = {
-                action: "delete",
-                studentId: currentUser.studentId
-            };
-
-            try {
-                const data = await callAPI(body);
-                
-                if (data.status === "success") {
-                    showAlert(data.message, 'success');
-                    setTimeout(() => {
-                        logout();
-                    }, 2000);
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
-        }
-
-        // 로그아웃
-        function logout() {
-            currentUser = null;
-            document.getElementById("guestSection").classList.remove("hidden");
-            document.getElementById("userSection").classList.add("hidden");
-            document.getElementById("loginForm").reset();
-            document.getElementById("results").classList.add("hidden");
-            showAlert("로그아웃되었습니다.", 'success');
-        }
-    </script>
+  function showAlert(message, type='success') {
+    const alertDiv = document.getElementById('alertDiv');
+    alertDiv.innerHTML = `<div class="alert alert-${type==='success'?'success':'error'}">${message}</div>`;
+    setTimeout(()=>alertDiv.innerHTML='',5000);
+  }
+  function showTab(tab) {
+    document.querySelectorAll('#guestSection .tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('#guestSection > div:not(.tabs)').forEach(div=>div.classList.add('hidden'));
+    event.target.classList.add('active');
+    document.getElementById(tab+'Tab').classList.remove('hidden');
+  }
+  function showUserTab(tab) {
+    document.querySelectorAll('#userSection .tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('#userSection > div:not(.tabs):not(:first-child)').forEach(div=>div.classList.add('hidden'));
+    event.target.classList.add('active');
+    document.getElementById(tab+'Tab').classList.remove('hidden');
+  }
+  async function callAPI(data){
+    try{
+      const res = await fetch(API_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(data)
+      });
+      return await res.json();
+    }catch(err){
+      showAlert("서버와 연결 오류",'error');
+      throw err;
+    }
+  }
+  // 회원 등록
+  document.getElementById("registerForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const jobs=[...document.querySelectorAll("#registerForm input[type=checkbox]:checked")].map(c=>c.value)
+      .filter(v=>["기자","시사교양PD","예능PD","드라마PD"].includes(v));
+    const stages=[...document.querySelectorAll("#registerForm input[type=checkbox]:checked")].map(c=>c.value)
+      .filter(v=>["스터디초보자","스터디경험자중심","인터뷰중심","스터디구성완료"].includes(v));
+    const body={
+      action:"register",
+      studentId:studentId.value,
+      password:password.value,
+      name:name.value,
+      email:email.value,
+      phone:phone.value,
+      major:major.value,
+      jobs, stages,
+      message:message.value
+    };
+    const data=await callAPI(body);
+    if(data.status==="success"){
+      showAlert("등록 성공! 로그인하세요","success");
+      showTab('login');
+    }else showAlert(data.message,"error");
+  });
+  // 로그인
+  document.getElementById("loginForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const body={action:"login",studentId:loginStudentId.value,password:loginPassword.value};
+    const data=await callAPI(body);
+    if(data.status==="success"){
+      currentUser=data.user;
+      userName.textContent=currentUser.name;
+      guestSection.classList.add("hidden");
+      userSection.classList.remove("hidden");
+      loadUserDataToUpdateForm();
+    } else showAlert(data.message,"error");
+  });
+  function loadUserDataToUpdateForm(){
+    updateMajor.value=currentUser.major||"";
+    document.querySelectorAll("#updateJobs input").forEach(cb=>cb.checked=(currentUser.jobs||"").split(",").includes(cb.value));
+    document.querySelectorAll("#updateStages input").forEach(cb=>cb.checked=(currentUser.stages||"").split(",").includes(cb.value));
+    updateMessage.value=currentUser.message||"";
+  }
+  async function search(){
+    const body={action:"search",job:searchJob.value,stage:searchStage.value,currentUser:currentUser.studentId};
+    const data=await callAPI(body);
+    const results=document.getElementById("results");
+    if(data.status==="success"){
+      if(data.students.length===0){
+        results.innerHTML="<div class='notice'>조건에 맞는 스터디원이 없습니다.</div>";
+      } else {
+        results.innerHTML=data.students.map(s=>`
+          <div class="user-card">
+            <h4>${s.name} (${s.studentId})</h4>
+            <p><strong>전공:</strong> ${s.major||'미입력'}</p>
+            <p><strong>이메일:</strong> ${s.email}</p>
+            <p><strong>연락처:</strong> ${s.phone||'미입력'}</p>
+            <p><strong>희망직종:</strong> ${s.jobs||'미선택'}</p>
+            <p><strong>스터디단계:</strong> ${s.stages||'미선택'}</p>
+            <p><strong>남긴 글:</strong> ${s.message||'없음'}</p>
+          </div>`).join("");
+      }
+      results.classList.remove("hidden");
+    } else showAlert(data.message,"error");
+  }
+  document.getElementById("updateForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const jobs=[...document.querySelectorAll("#updateJobs input:checked")].map(c=>c.value);
+    const stages=[...document.querySelectorAll("#updateStages input:checked")].map(c=>c.value);
+    const body={action:"update",studentId:currentUser.studentId,major:updateMajor.value,jobs,stages,message:updateMessage.value};
+    const data=await callAPI(body);
+    if(data.status==="success"){
+      showAlert(data.message,"success");
+      currentUser.major=updateMajor.value;
+      currentUser.jobs=jobs.join(",");
+      currentUser.stages=stages.join(",");
+      currentUser.message=updateMessage.value;
+    } else showAlert(data.message,"error");
+  });
+  async function deleteAccount(){
+    if(!confirm("정말 탈퇴하시겠습니까?")) return;
+    const data=await callAPI({action:"delete",studentId:currentUser.studentId});
+    if(data.status==="success"){ showAlert("탈퇴 완료","success"); logout(); }
+    else showAlert(data.message,"error");
+  }
+  function logout(){
+    currentUser=null;
+    guestSection.classList.remove("hidden");
+    userSection.classList.add("hidden");
+    loginForm.reset();
+    results.classList.add("hidden");
+    showAlert("로그아웃되었습니다","success");
+  }
+</script>
 </body>
-</html>                       
+</html>
+               
