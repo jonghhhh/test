@@ -1,0 +1,890 @@
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP 서버 종합 가이드 - 32개 고품질 서버 완벽 정리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: 700;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            padding: 0 20px;
+            overflow-x: auto;
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .nav-tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .category-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .category-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .server-card {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .server-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+        
+        .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .server-title {
+            font-size: 1.8em;
+            color: #667eea;
+            font-weight: 700;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .badge-accuracy { background: #d4edda; color: #155724; }
+        .badge-general { background: #d1ecf1; color: #0c5460; }
+        .badge-cicd { background: #fff3cd; color: #856404; }
+        .badge-cloud { background: #cce5ff; color: #004085; }
+        .badge-database { background: #f8d7da; color: #721c24; }
+        .badge-security { background: #d6d8db; color: #383d41; }
+        .badge-monitoring { background: #e2e3e5; color: #383d41; }
+        .badge-productivity { background: #d1ecf1; color: #0c5460; }
+        .badge-ai { background: #e7e8ea; color: #383d41; }
+        
+        .feature-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .feature-box h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .use-case {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .use-case h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .use-case-scenario {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .use-case-scenario strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .code-block {
+            background: #282c34;
+            color: #98c379;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95em;
+            margin: 15px 0;
+            white-space: pre;
+        }
+        
+        .link-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .link-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .integration-example {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .integration-example h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .integration-example ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .integration-example li {
+            margin: 5px 0;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .tag {
+            background: #e9ecef;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #495057;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 40px;
+            text-align: center;
+            color: #6c757d;
+        }
+        
+        footer h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .config-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: left;
+        }
+        
+        .config-box h4 {
+            color: #495057;
+            margin-top: 15px;
+        }
+        
+        .config-box code {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 10px;
+            display: block;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            .server-header {
+                flex-direction: column;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .stat-number {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MCP 서버 종합 가이드</h1>
+            <p>32개의 고품질 MCP 서버로 AI 개발 생산성을 극대화하세요</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number">32+</span>
+                <span class="stat-label">MCP 서버</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">9</span>
+                <span class="stat-label">카테고리</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">100+</span>
+                <span class="stat-label">실전 사용 사례</span>
+            </div>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showCategory('accuracy')">정확도 & 일반</button>
+            <button class="nav-tab" onclick="showCategory('cicd')">CI/CD & DevOps</button>
+            <button class="nav-tab" onclick="showCategory('cloud')">클라우드</button>
+            <button class="nav-tab" onclick="showCategory('database')">데이터베이스</button>
+            <button class="nav-tab" onclick="showCategory('security')">보안</button>
+            <button class="nav-tab" onclick="showCategory('monitoring')">모니터링</button>
+            <button class="nav-tab" onclick="showCategory('productivity')">생산성</button>
+            <button class="nav-tab" onclick="showCategory('ai')">AI 도구</button>
+            <button class="nav-tab" onclick="showCategory('integration')">통합 사례</button>
+        </div>
+        
+        <div class="content">
+            <!-- 정확도 & 일반 -->
+            <div id="accuracy" class="category-section active">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">1. Sequential Thinking</h2>
+                        <span class="badge badge-accuracy">정확도</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>주요 기능</h4>
+                        <p>AI가 복잡한 문제를 구조화된 단계로 나누어 체계적으로 사고할 수 있도록 지원합니다. 각 단계에서 논리적 검증을 수행하며, 이전 단계의 결과를 다음 단계의 입력으로 활용합니다.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>실전 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 1: 복잡한 알고리즘 설계</strong>
+                            <p>전자상거래 추천 시스템 알고리즘을 설계할 때, 사용자 행동 분석 → 협업 필터링 로직 → 콘텐츠 기반 필터링 → 하이브리드 결합 → 성능 최적화 단계를 순차적으로 검증하며 진행합니다.</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 2: 데이터베이스 마이그레이션 계획</strong>
+                            <p>MySQL에서 PostgreSQL로 마이그레이션 시, 스키마 분석 → 데이터 타입 매핑 → 제약조건 변환 → 인덱스 재설계 → 마이그레이션 스크립트 작성 단계를 체계적으로 수행합니다.</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 3: 보안 취약점 분석</strong>
+                            <p>웹 애플리케이션 보안 감사 시, 인증 체계 검토 → SQL 인젝션 취약점 확인 → XSS 공격 가능성 분석 → CSRF 방어 메커니즘 점검 → 종합 보안 보고서 작성 과정을 단계별로 진행합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx -y @modelcontextprotocol/server-sequential-thinking</div>
+                    
+                    <div class="tags">
+                        <span class="tag">논리적 사고</span>
+                        <span class="tag">단계별 검증</span>
+                        <span class="tag">복잡한 문제 해결</span>
+                        <span class="tag">알고리즘 설계</span>
+                    </div>
+                    
+                    <a href="https://www.npmjs.com/package/@modelcontextprotocol/server-sequential-thinking" class="link-button" target="_blank">공식 문서 보기</a>
+                </div>
+                
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">2. Filesystem</h2>
+                        <span class="badge badge-general">일반 도구</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>주요 기능</h4>
+                        <p>세밀한 권한 제어를 통해 프로젝트 파일 시스템에 안전하게 접근합니다. 읽기/쓰기/실행 권한을 디렉토리별로 설정하여 보안을 유지하면서 자동화 작업을 수행합니다.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>실전 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 1: 프로젝트 구조 자동 생성</strong>
+                            <p>React 프로젝트 초기화 시, components/, pages/, utils/, styles/ 디렉토리를 자동 생성하고, 각 디렉토리에 index.js와 README.md를 함께 생성합니다.</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 2: 코드 리팩토링 자동화</strong>
+                            <p>레거시 코드베이스에서 특정 패턴을 찾아 전체 프로젝트 파일을 순회하며 자동으로 수정합니다. 예: var 선언을 const/let으로 변경.</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 3: 문서 자동 생성</strong>
+                            <p>API 엔드포인트를 분석하여 자동으로 Swagger/OpenAPI 명세서를 생성하고, 각 엔드포인트별 사용 예제를 docs/ 디렉토리에 저장합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx -y @modelcontextprotocol/server-filesystem /path/to/project</div>
+                    
+                    <div class="tags">
+                        <span class="tag">파일 관리</span>
+                        <span class="tag">자동화</span>
+                        <span class="tag">권한 제어</span>
+                    </div>
+                    
+                    <a href="https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem" class="link-button" target="_blank">공식 문서 보기</a>
+                </div>
+
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">3. Context7</h2>
+                        <span class="badge badge-accuracy">정확도</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>주요 기능</h4>
+                        <p>라이브러리와 프레임워크의 최신 공식 문서를 실시간으로 가져와 AI가 항상 최신 API를 참조하도록 합니다.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>실전 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 1: React 18 마이그레이션</strong>
+                            <p>React 17에서 18로 업그레이드 시, 새로운 Concurrent Features 사용법을 최신 문서에서 가져와 적용합니다.</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 2: Next.js App Router 적용</strong>
+                            <p>Next.js 13+ App Router의 최신 규칙을 실시간으로 참조하여 정확한 코드를 생성합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx context7-mcp</div>
+                    
+                    <div class="tags">
+                        <span class="tag">최신 문서</span>
+                        <span class="tag">API 참조</span>
+                    </div>
+                    
+                    <a href="https://github.com/upstash/context7" class="link-button" target="_blank">공식 문서 보기</a>
+                </div>
+
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">4-6. 기타 정확도 도구</h2>
+                        <span class="badge badge-accuracy">정확도</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Memory Bank, Fetch, GitMCP</h4>
+                        <p>프로젝트 컨텍스트 기억, 웹 콘텐츠 수집, GitHub 저장소 조회 기능을 제공합니다.</p>
+                    </div>
+                    
+                    <div class="code-block">npx memory-bank-mcp
+npx fetch-mcp
+npx git-mcp</div>
+                </div>
+            </div>
+            
+            <!-- CI/CD & DevOps -->
+            <div id="cicd" class="category-section">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">7. GitHub</h2>
+                        <span class="badge badge-cicd">CI/CD</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>주요 기능</h4>
+                        <p>GitHub API를 통해 저장소, 이슈, PR, Actions 워크플로우를 자동화합니다.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>실전 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 1: 자동 릴리스 노트 생성</strong>
+                            <p>마지막 릴리스 이후의 모든 커밋을 분석하여 기능 추가, 버그 수정으로 분류하고 릴리스 노트를 자동 작성합니다.</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>시나리오 2: PR 자동 리뷰 준비</strong>
+                            <p>코드 변경사항을 분석하여 잠재적 문제점을 체크리스트로 작성하고 PR 코멘트로 추가합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx @modelcontextprotocol/server-github</div>
+                    
+                    <a href="https://github.com/github/github-mcp-server" class="link-button" target="_blank">공식 문서 보기</a>
+                </div>
+
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">8. Docker</h2>
+                        <span class="badge badge-cicd">DevOps</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>주요 기능</h4>
+                        <p>Docker 컨테이너, 이미지, 볼륨, 네트워크를 프로그래밍 방식으로 관리합니다.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>실전 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>시나리오: 개발 환경 원클릭 구성</strong>
+                            <p>PostgreSQL, Redis, Elasticsearch 컨테이너를 자동 생성하고 네트워크 연결을 설정합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx mcp-server-docker</div>
+                    
+                    <a href="https://github.com/ckreiling/mcp-server-docker" class="link-button" target="_blank">공식 문서 보기</a>
+                </div>
+            </div>
+            
+            <!-- 클라우드 -->
+            <div id="cloud" class="category-section">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">9-11. 클라우드 플랫폼</h2>
+                        <span class="badge badge-cloud">클라우드</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>AWS, Google Cloud, Firebase</h4>
+                        <p>주요 클라우드 플랫폼의 리소스를 프로그래밍 방식으로 관리합니다.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>통합 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>멀티 클라우드 전략</strong>
+                            <p>AWS EC2로 컴퓨팅, GCP BigQuery로 데이터 분석, Firebase로 모바일 백엔드를 구축하는 하이브리드 아키텍처를 자동 구성합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx @aws/mcp-server
+npx gcp-mcp
+firebase deploy</div>
+                    
+                    <div class="tags">
+                        <span class="tag">AWS</span>
+                        <span class="tag">GCP</span>
+                        <span class="tag">Firebase</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 데이터베이스 -->
+            <div id="database" class="category-section">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">12-23. 데이터베이스 서버</h2>
+                        <span class="badge badge-database">데이터베이스</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>지원 데이터베이스</h4>
+                        <p>PostgreSQL, MongoDB, Redis, ClickHouse, Snowflake, Supabase, Pinecone, DynamoDB, Elasticsearch 등</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>하이브리드 데이터 아키텍처</h4>
+                        <div class="use-case-scenario">
+                            <strong>실전 조합</strong>
+                            <p>PostgreSQL(트랜잭션) + MongoDB(프로필) + Redis(캐시) + Elasticsearch(검색) + Pinecone(AI 임베딩)을 조합한 마이크로서비스 구축</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx postgres-mcp
+npx mongodb-mcp-server
+npx mcp-redis
+npx elasticsearch-mcp-server
+npx mcp-pinecone</div>
+                </div>
+            </div>
+            
+            <!-- 보안 -->
+            <div id="security" class="category-section">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">24-25. 보안 도구</h2>
+                        <span class="badge badge-security">보안</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Snyk & Auth0</h4>
+                        <p>취약점 스캔과 인증/인가 시스템을 자동화합니다.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>DevSecOps 파이프라인</h4>
+                        <div class="use-case-scenario">
+                            <strong>자동 보안 검사</strong>
+                            <p>PR 생성 시 Snyk가 코드 스캔, Auth0로 MFA 설정, 취약점 발견 시 자동으로 PR 차단</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">snyk test
+npx auth0-mcp-server</div>
+                </div>
+            </div>
+            
+            <!-- 모니터링 -->
+            <div id="monitoring" class="category-section">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">26-28. 모니터링 & 테스트</h2>
+                        <span class="badge badge-monitoring">모니터링</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Sentry, BrowserStack, Puppeteer</h4>
+                        <p>오류 추적, 크로스 브라우저 테스트, E2E 자동화</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>종단 간 테스트 자동화</h4>
+                        <div class="use-case-scenario">
+                            <strong>통합 워크플로우</strong>
+                            <p>Puppeteer로 시나리오 작성 → BrowserStack으로 다중 환경 테스트 → Sentry로 에러 추적</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx puppeteer-mcp-server</div>
+                </div>
+            </div>
+<!-- 생산성 -->
+            <div id="productivity" class="category-section">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">29-30. 생산성 도구</h2>
+                        <span class="badge badge-productivity">생산성</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Notion & Slack</h4>
+                        <p>문서 자동화와 팀 커뮤니케이션 통합</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>실전 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>자동 기술 문서 생성</strong>
+                            <p>코드베이스를 분석하여 API 문서를 Notion에 자동 생성하고, 업데이트 시 Slack으로 알림 전송</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>인시던트 대응 자동화</strong>
+                            <p>Slack #alerts 채널의 에러를 감지하여 심각도 분석 후 관련 담당자에게 자동 멘션</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx slack-mcp-server</div>
+                    
+                    <a href="https://github.com/korotovsky/slack-mcp-server" class="link-button" target="_blank">Slack 문서</a>
+                    <a href="https://developers.notion.com/docs/mcp" class="link-button" target="_blank">Notion 문서</a>
+                </div>
+            </div>
+            
+            <!-- AI 도구 -->
+            <div id="ai" class="category-section">
+                <div class="server-card">
+                    <div class="server-header">
+                        <h2 class="server-title">31-32. AI 메타 도구</h2>
+                        <span class="badge badge-ai">AI 도구</span>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Langfuse & OpenAI WebSearch</h4>
+                        <p>LLM 애플리케이션 모니터링과 웹 검색 통합</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h4>실전 사용 사례</h4>
+                        <div class="use-case-scenario">
+                            <strong>프롬프트 성능 최적화</strong>
+                            <p>Langfuse로 여러 프롬프트를 A/B 테스팅하여 응답 품질과 비용을 비교하고 최적 버전 선택</p>
+                        </div>
+                        <div class="use-case-scenario">
+                            <strong>실시간 정보 기반 AI 응답</strong>
+                            <p>OpenAI WebSearch로 최신 기술 트렌드를 검색하여 AI 응답에 반영</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">npx mcp-server-langfuse
+npx openai-websearch-mcp</div>
+                    
+                    <a href="https://github.com/langfuse/mcp-server-langfuse" class="link-button" target="_blank">Langfuse 문서</a>
+                    <a href="https://github.com/ConechoAI/openai-websearch-mcp" class="link-button" target="_blank">WebSearch 문서</a>
+                </div>
+            </div>
+            
+            <!-- 통합 사례 -->
+            <div id="integration" class="category-section">
+                <div class="integration-example">
+                    <h3>🚀 풀스택 웹 애플리케이션 개발 자동화</h3>
+                    <p><strong>사용 서버:</strong> GitHub + Docker + AWS + PostgreSQL + Redis + Sentry</p>
+                    <div class="code-block">npx @modelcontextprotocol/server-github
+npx mcp-server-docker
+npx @aws/mcp-server
+npx postgres-mcp</div>
+                    <p><strong>워크플로우:</strong></p>
+                    <ol>
+                        <li>GitHub에서 feature 브랜치 생성</li>
+                        <li>Docker Compose로 PostgreSQL, Redis 자동 구성</li>
+                        <li>코드 작성 및 로컬 테스트</li>
+                        <li>PR 생성 시 자동 테스트 실행</li>
+                        <li>머지 후 AWS ECS에 컨테이너 자동 배포</li>
+                        <li>Sentry가 프로덕션 에러 실시간 추적</li>
+                    </ol>
+                </div>
+
+                <div class="integration-example">
+                    <h3>🤖 AI 기반 고객 지원 시스템</h3>
+                    <p><strong>사용 서버:</strong> Pinecone + Slack + Langfuse + OpenAI WebSearch</p>
+                    <div class="code-block">npx mcp-pinecone
+npx slack-mcp-server
+npx mcp-server-langfuse
+npx openai-websearch-mcp</div>
+                    <p><strong>워크플로우:</strong></p>
+                    <ol>
+                        <li>고객이 Slack 채널에 질문 게시</li>
+                        <li>Pinecone에서 관련 문서 벡터 검색</li>
+                        <li>문서 부족 시 WebSearch로 최신 정보 수집</li>
+                        <li>Langfuse 최적화 프롬프트로 답변 생성</li>
+                        <li>Slack에 자동 답변 게시</li>
+                        <li>응답 품질을 Langfuse에서 추적 및 개선</li>
+                    </ol>
+                </div>
+
+                <div class="integration-example">
+                    <h3>📊 데이터 파이프라인 및 분석 플랫폼</h3>
+                    <p><strong>사용 서버:</strong> MongoDB + Elasticsearch + ClickHouse + Google Cloud + Notion</p>
+                    <div class="code-block">npx mongodb-mcp-server
+npx elasticsearch-mcp-server
+npx mcp-clickhouse
+npx gcp-mcp</div>
+                    <p><strong>워크플로우:</strong></p>
+                    <ol>
+                        <li>MongoDB에서 실시간 이벤트 수집</li>
+                        <li>Elasticsearch에 인덱싱하여 즉시 검색 가능</li>
+                        <li>배치로 ClickHouse에 집계하여 빠른 분석</li>
+                        <li>BigQuery로 장기 데이터 저장</li>
+                        <li>분석 결과를 Notion에 자동 업데이트</li>
+                    </ol>
+                </div>
+
+                <div class="integration-example">
+                    <h3>🔒 보안 강화 DevSecOps</h3>
+                    <p><strong>사용 서버:</strong> GitHub + Snyk + Auth0 + Sentry + BrowserStack</p>
+                    <div class="code-block">npx @modelcontextprotocol/server-github
+snyk test
+npx auth0-mcp-server</div>
+                    <p><strong>워크플로우:</strong></p>
+                    <ol>
+                        <li>PR 생성 시 Snyk가 코드와 의존성 스캔</li>
+                        <li>취약점 발견 시 자동으로 PR에 코멘트</li>
+                        <li>Auth0로 MFA 및 SSO 설정</li>
+                        <li>BrowserStack으로 보안 취약점 테스트</li>
+                        <li>프로덕션 보안 이벤트를 Sentry가 추적</li>
+                        <li>보안 알림을 Slack으로 전송</li>
+                    </ol>
+                </div>
+
+                <div class="integration-example">
+                    <h3>🎨 프론트엔드 개발 및 배포 자동화</h3>
+                    <p><strong>사용 서버:</strong> GitHub + Context7 + Puppeteer + Firebase + Notion</p>
+                    <div class="code-block">npx @modelcontextprotocol/server-github
+npx context7-mcp
+npx puppeteer-mcp-server
+firebase deploy</div>
+                    <p><strong>워크플로우:</strong></p>
+                    <ol>
+                        <li>Context7에서 React/Next.js 최신 문서 참조</li>
+                        <li>컴포넌트 작성 후 GitHub에 커밋</li>
+                        <li>Puppeteer로 주요 플로우 자동 테스트</li>
+                        <li>테스트 통과 시 Firebase에 자동 배포</li>
+                        <li>변경사항을 Notion에 자동 기록</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <h3>MCP 서버 시작하기</h3>
+            <p>대부분의 MCP 서버는 Claude Desktop 설정 파일에 추가하여 사용할 수 있습니다.</p>
+            
+            <div class="config-box">
+                <h4>macOS 설정 파일 위치:</h4>
+                <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>
+                
+                <h4>Windows 설정 파일 위치:</h4>
+                <code>%APPDATA%\Claude\claude_desktop_config.json</code>
+                
+                <h4>설정 예시:</h4>
+                <code>{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/path/to/allowed/files"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+      }
+    }
+  }
+}</code>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 0.9em;">
+                각 MCP 서버의 상세한 설정 방법은 공식 문서를 참조하세요.<br>
+                이 가이드는 <strong>2025년 1월</strong> 기준으로 작성되었습니다.
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        function showCategory(categoryId) {
+            // 모든 섹션 숨기기
+            const sections = document.querySelectorAll('.category-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // 모든 탭 비활성화
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // 선택된 섹션 표시
+            document.getElementById(categoryId).classList.add('active');
+            
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            
+            // 페이지 상단으로 스크롤
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>        
