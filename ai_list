@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>취재보도용 AI 도구 가이드 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-filter {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            background: #fff;
+            border-bottom: 2px solid #e9ecef;
+            padding: 0 20px;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            white-space: nowrap;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .category-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .category-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .category-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tool-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        }
+
+        .tool-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .tool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .tool-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .tool-url {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.85em;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .tool-url:hover {
+            text-decoration: underline;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-free {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-paid {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-korean {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .badge-english {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .tool-feature {
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .tool-usage {
+            font-size: 0.9em;
+            color: #333;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .tool-price {
+            font-weight: 600;
+            color: #28a745;
+            margin-top: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .recommendations {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #0066cc;
+        }
+
+        .recommendations h3 {
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+
+        .rec-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .tool-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                padding: 0 10px;
+            }
+
+            .tab {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-results-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 취재보도용 AI 도구 가이드</h1>
+            <p class="subtitle">데이터저널리즘을 위한 150+ AI 도구 종합 가이드 (2025년 최신)</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTools">150+</div>
+                <div class="stat-label">총 도구 수</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">15</div>
+                <div class="stat-label">카테고리</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">60+</div>
+                <div class="stat-label">한국어 지원</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">$0~</div>
+                <div class="stat-label">무료 도구 多</div>
+            </div>
+        </div>
+
+        <div class="search-filter">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 도구 이름, 기능, 용도로 검색... (예: 번역, 팟캐스트, 데이터 분석)">
+                <div class="filter-buttons">
+                    <button class="filter-btn" data-filter="all">전체</button>
+                    <button class="filter-btn" data-filter="free">무료</button>
+                    <button class="filter-btn" data-filter="korean">한국어</button>
+                    <button class="filter-btn" data-filter="paid">유료</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs" id="tabs">
+            <button class="tab active" data-category="all">전체 보기</button>
+            <button class="tab" data-category="research">리서치</button>
+            <button class="tab" data-category="data">데이터 분석</button>
+            <button class="tab" data-category="stt">녹취/전사</button>
+            <button class="tab" data-category="translation">번역</button>
+            <button class="tab" data-category="writing">기사작성</button>
+            <button class="tab" data-category="factcheck">사실검증</button>
+            <button class="tab" data-category="multimedia">멀티미디어</button>
+            <button class="tab" data-category="social">소셜미디어</button>
+            <button class="tab" data-category="analytics">독자분석</button>
+            <button class="tab" data-category="advanced">고급/시스템</button>
+        </div>
+
+        <div class="content" id="content">
+            <!-- JavaScript로 동적 생성 -->
+        </div>
+
+        <footer>
+            <p>💡 <strong>면책사항:</strong> 이 가이드는 2025년 1월 기준 정보입니다. AI 도구는 빠르게 업데이트되므로 최신 정보는 각 도구의 공식 웹사이트를 확인해주세요.</p>
+            <p style="margin-top: 15px;">⚠️ <strong>윤리 원칙:</strong> 모든 AI 도구 사용 시 투명성, 재검증, 프라이버시 보호, 출처 표시를 준수하세요.</p>
+            <p style="margin-top: 15px;">📧 업데이트 제안: GitHub Issues 또는 PR 환영</p>
+        </footer>
+    </div>
+
+    <script>
+        // 데이터 구조
+        const tools = [
+            // 1. 리서치
+            {
+                category: 'research',
+                name: 'ChatGPT',
+                url: 'https://chat.openai.com',
+                feature: '범용 AI, GPT-4o/o1 모델, 검색 기능',
+                usage: '브레인스토밍, 아이디어 다각화, 초안 작성',
+                price: '무료~$20/월',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'Claude',
+                url: 'https://claude.ai',
+                feature: 'Anthropic 제작, 긴 문서 처리 우수',
+                usage: '회의록 요약, 복잡한 정책 분석',
+                price: '무료~$20/월',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'Gemini 2.5 Pro',
+                url: 'https://gemini.google.com',
+                feature: '200만 토큰 컨텍스트, Python 실행',
+                usage: '대량 문서 분석, 코드 생성, Deep Research',
+                price: '무료~$20/월',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'Perplexity',
+                url: 'https://perplexity.ai',
+                feature: '실시간 검색+AI 요약, 출처 명시',
+                usage: '최신 이슈 빠른 파악, 팩트체크',
+                price: '무료~$20/월',
+                korean: '양호',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'Genspark',
+                url: 'https://genspark.ai',
+                feature: 'Sparkpages, Deep Research, Super Agent',
+                usage: '1,000개 출처 종합 분석, 슬라이드 자동 생성',
+                price: '무료~$25/월',
+                korean: '영어',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'NotebookLM',
+                url: 'https://notebooklm.google.com',
+                feature: '최대 50개 소스 통합, Audio/Video Overviews',
+                usage: '취재 자료 통합 분석, 팟캐스트/영상 자동 생성',
+                price: '무료~$20/월',
+                korean: '양호',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'Satchel',
+                url: 'https://satchelai.com',
+                feature: '공공회의 자동 요약 특화',
+                usage: '지방의회, 정부 회의록 분석',
+                price: '유료 (문의)',
+                korean: '영어',
+                free: false
+            },
+            {
+                category: 'research',
+                name: 'AURA',
+                url: 'https://journalismai.info',
+                feature: '기자용 AI 리서치 도구',
+                usage: '복잡한 주제 구조화, 질문-답변형 탐색',
+                price: '무료 (일부)',
+                korean: '영어',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'Rolli',
+                url: 'https://rolli.ai',
+                feature: '전문가 DB + 디스인포 추적',
+                usage: '전문가 찾기, SNS 허위정보 추적',
+                price: '무료 (조직)',
+                korean: '영어',
+                free: true
+            },
+            {
+                category: 'research',
+                name: 'Pinpoint',
+                url: 'https://journaliststudio.google.com/pinpoint',
+                feature: 'Google 조사보도 도구, 대량 문서 검색',
+                usage: '문서, 이미지, 오디오 빠른 검색',
+                price: '무료',
+                korean: '지원',
+                free: true
+            },
+
+            // 2. 데이터 분석
+            {
+                category: 'data',
+                name: 'Powerdrill Bloom',
+                url: 'https://powerdrill.ai',
+                feature: 'AI 데이터 분석, 자동 시각화, 100배 빠른 분석',
+                usage: '데이터셋 업로드→인사이트 자동 발견',
+                price: '무료~$33/월',
+                korean: '영어',
+                free: true
+            },
+            {
+                category: 'data',
+                name: 'Julius AI',
+                url: 'https://julius.ai',
+                feature: '스프레드시트/CSV 직관적 분석',
+                usage: '복잡한 데이터 쉽게 해석',
+                price: '유료',
+                korean: '영어',
+                free: false
+            },
+            {
+                category: 'data',
+                name: 'Datawrapper',
+                url: 'https://datawrapper.de',
+                feature: '노코드 차트/지도 생성, 언론사 애용',
+                usage: '뉴스용 시각화, 임베드',
+                price: '무료~유료',
+                korean: '지원',
+                free: true
+            },
+            {
+                category: 'data',
+                name: 'Flourish',
+                url: 'https://flourish.studio',
+                feature: '인터랙티브 그래픽, 타임라인, 맵',
+                usage: '데이터 스토리텔링',
+                price: '무료~유료',
+                korean: '지원',
+                free: true
+            },
+            {
+                category: 'data',
+                name: 'Tableau',
+                url: 'https://tableau.com',
+                feature: 'AI 기반 데이터 분석, Einstein AI',
+                usage: '고급 분석, 패턴 자동 발견',
+                price: '유료',
+                korean: '지원',
+                free: false
+            },
+            {
+                category: 'data',
+                name: 'Graphext',
+                url: 'https://graphext.com',
+                feature: '노코드 데이터 사이언스, 클러스터링',
+                usage: '네트워크 분석, 트렌드 발견',
+                price: '유료',
+                korean: '영어',
+                free: false
+            },
+            {
+                category: 'data',
+                name: 'Microsoft Power BI',
+                url: 'https://powerbi.microsoft.com',
+                feature: 'AI 데이터 분석, 대시보드 제작',
+                usage: '리포트 생성, 실시간 모니터링',
+                price: '무료~$10/월',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'data',
+                name: 'Felt',
+                url: 'https://felt.com',
+                feature: '협업 지도 제작, 데이터 시각화',
+                usage: '지리 데이터 보도',
+                price: '무료~$30/월',
+                korean: '지원',
+                free: true
+            },
+            {
+                category: 'data',
+                name: 'Browse AI',
+                url: 'https://browse.ai',
+                feature: '2분 만에 웹 스크래핑 로봇 훈련',
+                usage: '정기 데이터 수집 자동화',
+                price: '유료',
+                korean: '영어',
+                free: false
+            },
+            {
+                category: 'data',
+                name: 'Google Sheets + AI',
+                url: 'https://sheets.google.com',
+                feature: 'AI 함수, 스마트 필',
+                usage: '간단한 데이터 정리',
+                price: '무료',
+                korean: '우수',
+                free: true
+            },
+
+            // 3. 녹취/전사 (STT)
+            {
+                category: 'stt',
+                name: '네이버 클로바노트',
+                url: 'https://clovanote.naver.com',
+                feature: '화자 구분, 요약, 한국어 특화',
+                usage: '인터뷰, 회의 녹취',
+                price: '무료~유료',
+                korean: '최고',
+                free: true
+            },
+            {
+                category: 'stt',
+                name: '다글로',
+                url: 'https://daglo.ai',
+                feature: '한국 1등 AI 플랫폼',
+                usage: '다국어 지원, 실시간 협업',
+                price: '유료',
+                korean: '최고',
+                free: false
+            },
+            {
+                category: 'stt',
+                name: 'Notta',
+                url: 'https://notta.ai',
+                feature: '98.86% 정확도, Zoom/Meet 연동',
+                usage: '온라인 회의 녹취',
+                price: '무료~유료',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'stt',
+                name: 'HappyScribe',
+                url: 'https://happyscribe.com',
+                feature: '85% 정확도, 45개 형식 지원',
+                usage: '오디오/비디오 전사, 자막',
+                price: '무료 10분~유료',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'stt',
+                name: 'Sonix',
+                url: 'https://sonix.ai',
+                feature: '40개 언어, 10분 내 전사',
+                usage: '팟캐스트, 인터뷰 전사',
+                price: '유료 (30분 무료)',
+                korean: '양호',
+                free: true
+            },
+            {
+                category: 'stt',
+                name: 'Otter.ai',
+                url: 'https://otter.ai',
+                feature: '영어 특화, 실시간 전사',
+                usage: '영어 인터뷰, 국제 회의',
+                price: '무료~유료',
+                korean: '미지원',
+                free: true
+            },
+            {
+                category: 'stt',
+                name: 'Descript',
+                url: 'https://descript.com',
+                feature: '텍스트 편집→비디오 편집',
+                usage: '팟캐스트, 영상 제작',
+                price: '유료',
+                korean: '제한적',
+                free: false
+            },
+
+            // 4. 번역
+            {
+                category: 'translation',
+                name: 'DeepL',
+                url: 'https://deepl.com',
+                feature: '고품질 AI 번역, 한↔영 최고',
+                usage: '해외 기사, 보고서 번역',
+                price: '무료~$9/월',
+                korean: '최고',
+                free: true
+            },
+            {
+                category: 'translation',
+                name: 'Papago',
+                url: 'https://papago.naver.com',
+                feature: '네이버, 한중일 특화',
+                usage: '동아시아 언어',
+                price: '무료',
+                korean: '최고',
+                free: true
+            },
+            {
+                category: 'translation',
+                name: 'Google Translate',
+                url: 'https://translate.google.com',
+                feature: '100개 언어, 무료',
+                usage: '다양한 언어 빠른 번역',
+                price: '무료',
+                korean: '우수',
+                free: true
+            },
+
+            // 5. 기사작성
+            {
+                category: 'writing',
+                name: 'ChatGPT',
+                url: 'https://chat.openai.com',
+                feature: '범용 AI 글쓰기',
+                usage: '초안, 구조 제안, 리드문 생성',
+                price: '무료~$20/월',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'writing',
+                name: 'Claude',
+                url: 'https://claude.ai',
+                feature: '긴 문서 작성 우수',
+                usage: '심층 보도 초안',
+                price: '무료~$20/월',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'writing',
+                name: 'QuillBot',
+                url: 'https://quillbot.com',
+                feature: '패러프레이징, 문법 검사',
+                usage: '문장 다듬기',
+                price: '무료~유료',
+                korean: '영어',
+                free: true
+            },
+            {
+                category: 'writing',
+                name: 'Grammarly',
+                url: 'https://grammarly.com',
+                feature: '영문 문법, 톤 검사',
+                usage: '영문 기사 교정',
+                price: '무료~$12/월',
+                korean: '미지원',
+                free: true
+            },
+
+            // 6. 사실검증
+            {
+                category: 'factcheck',
+                name: 'Google Fact Check Explorer',
+                url: 'https://toolbox.google.com/factcheck',
+                feature: '기존 팩트체크 검색',
+                usage: '바이럴 주장 검증',
+                price: '무료',
+                korean: '제한적',
+                free: true
+            },
+            {
+                category: 'factcheck',
+                name: 'InVID-WeVerify',
+                url: 'https://www.invid-project.eu',
+                feature: '이미지/비디오 검증, 메타데이터',
+                usage: '영상 진위 확인',
+                price: '무료',
+                korean: '지원',
+                free: true
+            },
+            {
+                category: 'factcheck',
+                name: 'GeoSpy',
+                url: 'https://geospy.ai',
+                feature: '사진 위치 추정',
+                usage: '사진 촬영 위치 확인',
+                price: '유료',
+                korean: '영어',
+                free: false
+            },
+            {
+                category: 'factcheck',
+                name: 'Deepfake-o-Meter',
+                url: 'https://deepfake-o-meter.org',
+                feature: '이미지/비디오/오디오 확인',
+                usage: '딥페이크 여부',
+                price: '무료 (가입)',
+                korean: '영어',
+                free: true
+            },
+
+            // 7. 멀티미디어
+            {
+                category: 'multimedia',
+                name: 'Canva AI',
+                url: 'https://canva.com',
+                feature: '디자인 템플릿 + AI',
+                usage: '소셜미디어 그래픽, 인포그래픽',
+                price: '무료~$15/월',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'multimedia',
+                name: 'DALL-E 3',
+                url: 'https://openai.com/dall-e-3',
+                feature: '텍스트→이미지, ChatGPT Plus 포함',
+                usage: '인포그래픽, 일러스트',
+                price: '$20/월',
+                korean: '지원',
+                free: false
+            },
+            {
+                category: 'multimedia',
+                name: 'Descript',
+                url: 'https://descript.com',
+                feature: '텍스트 편집→비디오 편집',
+                usage: '인터뷰 영상 편집',
+                price: '유료',
+                korean: '제한적',
+                free: false
+            },
+            {
+                category: 'multimedia',
+                name: 'CapCut AI',
+                url: 'https://capcut.com',
+                feature: '자동 편집, 자막 생성',
+                usage: '소셜미디어 편집',
+                price: '무료~유료',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'multimedia',
+                name: 'Lumen5',
+                url: 'https://lumen5.com',
+                feature: '기사→비디오 자동',
+                usage: '기사 영상화',
+                price: '무료~유료',
+                korean: '영어',
+                free: true
+            },
+
+            // 8. 소셜미디어
+            {
+                category: 'social',
+                name: 'Hootsuite',
+                url: 'https://hootsuite.com',
+                feature: 'AI 캡션, 일정 관리, 성과 분석',
+                usage: '소셜미디어 통합 관리',
+                price: '유료',
+                korean: '영어',
+                free: false
+            },
+
+            // 9. 독자분석
+            {
+                category: 'analytics',
+                name: 'Google Analytics 4',
+                url: 'https://analytics.google.com',
+                feature: 'AI 인사이트, 독자 행동 분석',
+                usage: '웹사이트 성과 분석',
+                price: '무료',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'analytics',
+                name: 'Microsoft Clarity',
+                url: 'https://clarity.microsoft.com',
+                feature: '히트맵, 세션 녹화, AI 인사이트',
+                usage: '독자 경험 개선',
+                price: '무료',
+                korean: '지원',
+                free: true
+            },
+
+            // 10. 고급/시스템
+            {
+                category: 'advanced',
+                name: 'Notion',
+                url: 'https://notion.so',
+                feature: 'AI 노트+DB, 자동화',
+                usage: '취재원 관리, 팀 협업',
+                price: '무료~유료',
+                korean: '우수',
+                free: true
+            },
+            {
+                category: 'advanced',
+                name: 'Airtable',
+                url: 'https://airtable.com',
+                feature: '스프레드시트+DB, AI',
+                usage: '데이터베이스 구축',
+                price: '무료~유료',
+                korean: '지원',
+                free: true
+            },
+            {
+                category: 'advanced',
+                name: 'Ollama',
+                url: 'https://ollama.com',
+                feature: '로컬 LLM 실행',
+                usage: '민감 데이터 분석',
+                price: '무료',
+                korean: '지원',
+                free: true
+            }
+        ];
+
+        // 초기화
+        let currentCategory = 'all';
+        let currentFilter = 'all';
+        let searchTerm = '';
+
+        // 렌더링 함수
+        function renderTools() {
+            const content = document.getElementById('content');
+            let filteredTools = tools.filter(tool => {
+                // 카테고리 필터
+                if (currentCategory !== 'all' && tool.category !== currentCategory) return false;
+                
+                // 검색 필터
+                if (searchTerm) {
+                    const searchLower = searchTerm.toLowerCase();
+                    const matchName = tool.name.toLowerCase().includes(searchLower);
+                    const matchFeature = tool.feature.toLowerCase().includes(searchLower);
+                    const matchUsage = tool.usage.toLowerCase().includes(searchLower);
+                    if (!matchName && !matchFeature && !matchUsage) return false;
+                }
+                
+                // 기타 필터
+                if (currentFilter === 'free' && !tool.free) return false;
+                if (currentFilter === 'paid' && tool.free) return false;
+                if (currentFilter === 'korean' && !['최고', '우수', '양호'].includes(tool.korean)) return false;
+                
+                return true;
+            });
+
+            if (filteredTools.length === 0) {
+                content.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <h2>검색 결과가 없습니다</h2>
+                        <p>다른 검색어나 필터를 시도해보세요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const categoryGroups = {};
+            filteredTools.forEach(tool => {
+                if (!categoryGroups[tool.category]) {
+                    categoryGroups[tool.category] = [];
+                }
+                categoryGroups[tool.category].push(tool);
+            });
+
+            const categoryNames = {
+                research: '🔍 아이디어 발굴 및 리서치',
+                data: '📊 데이터 수집 및 분석',
+                stt: '🎤 인터뷰 및 녹취 (STT)',
+                translation: '🌐 번역',
+                writing: '✍️ 기사 작성',
+                factcheck: '✅ 사실검증',
+                multimedia: '🎬 멀티미디어 제작',
+                social: '📱 소셜미디어 관리',
+                analytics: '📈 독자 반응 분석',
+                advanced: '⚙️ 고급/시스템'
+            };
+
+            let html = '';
+            for (const [category, categoryTools] of Object.entries(categoryGroups)) {
+                html += `
+                    <div class="category-section active">
+                        <h2 class="category-title">${categoryNames[category]}</h2>
+                        <div class="tool-grid">
+                            ${categoryTools.map(tool => `
+                                <div class="tool-card">
+                                    <div class="tool-header">
+                                        <div>
+                                            <div class="tool-name">${tool.name}</div>
+                                            ${tool.url ? `<a href="${tool.url}" target="_blank" class="tool-url">🔗 ${tool.url}</a>` : ''}
+                                        </div>
+                                        <div>
+                                            <span class="badge ${tool.free ? 'badge-free' : 'badge-paid'}">${tool.free ? '무료' : '유료'}</span>
+                                            <span class="badge ${['최고', '우수'].includes(tool.korean) ? 'badge-korean' : 'badge-english'}">
+                                                ${tool.korean === '최고' ? '🇰🇷' : tool.korean === '우수' ? '한국어' : tool.korean === '양호' ? '한↔' : 'EN'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="tool-feature">
+                                        <strong>특징:</strong> ${tool.feature}
+                                    </div>
+                                    <div class="tool-usage">
+                                        <strong>💡 활용:</strong> ${tool.usage}
+                                    </div>
+                                    <div class="tool-price">
+                                        💰 ${tool.price}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+        }
+
+        // 탭 클릭
+        document.getElementById('tabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab')) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                renderTools();
+            }
+        });
+
+        // 필터 버튼
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                renderTools();
+            });
+        });
+
+        // 검색
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            renderTools();
+        });
+
+        // 초기 렌더링
+        renderTools();
+
+        // 통계 업데이트
+        document.getElementById('totalTools').textContent = tools.length;
+    </script>
+</body>
+</html>
