@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>데이터저널리즘 — 출석 체크</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0f14;
+  --surface: #151921;
+  --surface2: #1c2230;
+  --border: #2a3142;
+  --text: #e8ecf4;
+  --text-dim: #7a849a;
+  --accent: #4ecdc4;
+  --accent-glow: rgba(78, 205, 196, 0.15);
+  --present: #2ecc71;
+  --present-bg: rgba(46, 204, 113, 0.1);
+  --absent: #e74c3c;
+  --absent-bg: rgba(231, 76, 60, 0.1);
+  --late: #f39c12;
+  --late-bg: rgba(243, 156, 18, 0.1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(78, 205, 196, 0.03) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(78, 205, 196, 0.02) 0%, transparent 50%);
+  z-index: -1;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 16px 24px 12px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.header-left h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #82e0d8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-left .date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.stats-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+.stat-chip.total .dot { background: var(--accent); }
+.stat-chip.present .dot { background: var(--present); }
+.stat-chip.absent .dot { background: var(--absent); }
+.stat-chip.late .dot { background: var(--late); }
+
+.call-bar {
+  display: none;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 30px var(--accent-glow);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+.call-bar.active { display: flex; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.voice-indicator { display: none; align-items: center; gap: 3px; }
+.voice-indicator.active { display: flex; }
+
+.voice-bar {
+  width: 3px; height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: voicePulse 0.6s ease-in-out infinite alternate;
+}
+.voice-bar:nth-child(1) { animation-delay: 0s; }
+.voice-bar:nth-child(2) { animation-delay: 0.15s; }
+.voice-bar:nth-child(3) { animation-delay: 0.3s; }
+.voice-bar:nth-child(4) { animation-delay: 0.15s; }
+
+@keyframes voicePulse {
+  0% { height: 5px; opacity: 0.4; }
+  100% { height: 18px; opacity: 1; }
+}
+
+.call-name { font-size: 1.5rem; font-weight: 900; letter-spacing: 0.02em; flex: 1; }
+.call-group { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-right: 4px; }
+
+.call-buttons { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  border: none; border-radius: 8px; padding: 9px 22px;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn:active { transform: scale(0.96); }
+.btn-present { background: var(--present); color: #fff; }
+.btn-absent { background: var(--absent); color: #fff; }
+.btn-late { background: var(--late); color: #fff; }
+.btn-speak { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 9px 14px; }
+
+.kbd-hints { display: flex; gap: 14px; font-size: 0.68rem; color: var(--text-dim); margin-left: 8px; }
+.kbd {
+  display: inline-block; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1px 6px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.64rem; margin-right: 2px;
+}
+
+.grid-area { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+
+.groups-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  flex: 1;
+  align-content: start;
+}
+
+.group-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.group-header {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.group-students {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-cell {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 8px 6px; border-radius: 6px; background: var(--surface2);
+  border: 1px solid var(--border); font-size: 0.82rem; font-weight: 500;
+  cursor: default; transition: all 0.3s; position: relative; line-height: 1.3;
+}
+
+.student-cell.calling {
+  border-color: var(--accent); background: var(--accent-glow);
+  box-shadow: 0 0 16px var(--accent-glow);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 16px var(--accent-glow); }
+  50% { box-shadow: 0 0 28px rgba(78, 205, 196, 0.25); }
+}
+
+.student-cell.present { background: var(--present-bg); border-color: rgba(46, 204, 113, 0.3); }
+.student-cell.absent { background: var(--absent-bg); border-color: rgba(231, 76, 60, 0.3); }
+.student-cell.late { background: var(--late-bg); border-color: rgba(243, 156, 18, 0.3); }
+
+.student-cell .status-icon { position: absolute; top: 3px; right: 5px; font-size: 0.6rem; }
+
+.btn-start {
+  background: linear-gradient(135deg, var(--accent), #3dbeb6); color: #fff;
+  padding: 7px 18px; font-size: 0.78rem; border-radius: 8px; border: none;
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-start:hover { filter: brightness(1.15); }
+.btn-start:active { transform: scale(0.96); }
+.btn-start.reverse { background: linear-gradient(135deg, #f39c12, #e67e22); }
+.btn-start:disabled { opacity: 0.4; cursor: default; filter: none; }
+
+.complete-overlay {
+  position: fixed; inset: 0; background: rgba(12, 15, 20, 0.9);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100; backdrop-filter: blur(8px);
+}
+.complete-overlay.active { display: flex; }
+
+.complete-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 36px 40px; text-align: center; max-width: 480px; width: 90%;
+  max-height: 80vh; overflow-y: auto;
+}
+.complete-box h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+.complete-box .summary { color: var(--text-dim); margin-bottom: 24px; font-size: 0.88rem; }
+
+.absent-item {
+  padding: 9px 14px; background: var(--absent-bg); border-radius: 6px;
+  margin-bottom: 4px; font-size: 0.85rem; display: flex; justify-content: space-between; text-align: left;
+}
+.absent-item.late-item { background: var(--late-bg); }
+
+.tag { font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.tag-absent { background: rgba(231,76,60,0.2); color: var(--absent); }
+.tag-late { background: rgba(243,156,18,0.2); color: var(--late); }
+
+.complete-buttons { margin-top: 24px; display: flex; gap: 10px; justify-content: center; }
+
+.btn-dl {
+  background: linear-gradient(135deg, var(--accent), #3dbeb6); color: #fff;
+  padding: 12px 28px; font-size: 0.9rem; border-radius: 10px; border: none;
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 600; cursor: pointer; transition: all 0.25s;
+}
+.btn-dl:hover { transform: translateY(-2px); }
+
+.btn-reset {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: 12px 28px; font-size: 0.9rem; border-radius: 10px;
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 600; cursor: pointer; transition: all 0.25s;
+}
+
+.all-present-msg { color: var(--present); font-weight: 600; font-size: 1rem; margin: 12px 0; }
+
+@media (max-width: 768px) {
+  .groups-container { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .student-cell { font-size: 0.72rem; padding: 6px 4px; }
+  .call-name { font-size: 1.2rem; }
+  .call-bar { padding: 10px 14px; gap: 10px; flex-wrap: wrap; }
+  .kbd-hints { display: none; }
+  .layout { padding: 10px 12px 8px; }
+  .header-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="complete-overlay" id="completeOverlay">
+  <div class="complete-box">
+    <h2>출석 체크 완료</h2>
+    <div class="summary" id="completeSummary"></div>
+    <div id="absentList"></div>
+    <div class="complete-buttons">
+      <button class="btn-dl" onclick="downloadRecord()">📥 출결 기록 다운로드</button>
+      <button class="btn-reset" onclick="resetAll()">↻ 다시 하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="header-row">
+    <div class="header-left">
+      <h1>데이터저널리즘</h1>
+      <div class="date" id="dateDisplay"></div>
+    </div>
+    <div class="stats-row">
+      <button class="btn-start" id="btnStart" onclick="startRollCall(false)">▶ 호명 (1→6조)</button>
+      <button class="btn-start reverse" id="btnStartRev" onclick="startRollCall(true)">◀ 역순 (6→1조)</button>
+      <div class="stat-chip total"><span class="dot"></span>전체 <strong id="statTotal">35</strong></div>
+      <div class="stat-chip present"><span class="dot"></span>출석 <strong id="statPresent">0</strong></div>
+      <div class="stat-chip late"><span class="dot"></span>지각 <strong id="statLate">0</strong></div>
+      <div class="stat-chip absent"><span class="dot"></span>결석 <strong id="statAbsent">0</strong></div>
+    </div>
+  </div>
+
+  <div class="call-bar" id="callBar">
+    <div class="voice-indicator" id="voiceIndicator">
+      <div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div>
+    </div>
+    <span class="call-group" id="callGroup"></span>
+    <div class="call-name" id="callName"></div>
+    <div class="call-buttons">
+      <button class="btn btn-present" onclick="markStudent('present')">✓ 출석</button>
+      <button class="btn btn-late" onclick="markStudent('late')">△ 지각</button>
+      <button class="btn btn-absent" onclick="markStudent('absent')">✗ 결석</button>
+      <button class="btn btn-speak" onclick="speakCurrent()">🔊</button>
+    </div>
+    <div class="kbd-hints">
+      <span><span class="kbd">1</span>출석</span>
+      <span><span class="kbd">2</span>지각</span>
+      <span><span class="kbd">3</span>결석</span>
+      <span><span class="kbd">R</span>재호명</span>
+    </div>
+  </div>
+
+  <div class="grid-area">
+    <div class="groups-container" id="groupsContainer"></div>
+  </div>
+</div>
+
+<script>
+const COURSE_NAME = "데이터저널리즘";
+
+const students = [
+  // 1조
+  { group: 1, nameEn: "JIANG WENWEN", nameKr: "장 원원", displayName: "JIANG WENWEN" },
+  { group: 1, nameEn: "LI MEIZHEN", nameKr: "리 메이전", displayName: "LI MEIZHEN" },
+  { group: 1, nameEn: "", nameKr: "김성빈", displayName: "김성빈" },
+  { group: 1, nameEn: "", nameKr: "박소윤", displayName: "박소윤" },
+  { group: 1, nameEn: "", nameKr: "이동혁", displayName: "이동혁" },
+  { group: 1, nameEn: "", nameKr: "장한나", displayName: "장한나" },
+  // 2조
+  { group: 2, nameEn: "LIGAY ANGELINA", nameKr: "리가이 안젤리나", displayName: "LIGAY ANGELINA" },
+  { group: 2, nameEn: "QIAN YE", nameKr: "첸 예", displayName: "QIAN YE" },
+  { group: 2, nameEn: "", nameKr: "나호열", displayName: "나호열" },
+  { group: 2, nameEn: "", nameKr: "김지우", displayName: "김지우" },
+  { group: 2, nameEn: "", nameKr: "염정민", displayName: "염정민" },
+  { group: 2, nameEn: "", nameKr: "신유빈", displayName: "신유빈" },
+  // 3조
+  { group: 3, nameEn: "LIN MINGYU", nameKr: "린 밍위", displayName: "LIN MINGYU" },
+  { group: 3, nameEn: "TSANG CHEUK LING", nameKr: "창 척링", displayName: "TSANG CHEUK LING" },
+  { group: 3, nameEn: "", nameKr: "박찬규", displayName: "박찬규" },
+  { group: 3, nameEn: "", nameKr: "김태린", displayName: "김태린" },
+  { group: 3, nameEn: "", nameKr: "남혜정", displayName: "남혜정" },
+  { group: 3, nameEn: "", nameKr: "이민형", displayName: "이민형" },
+  // 4조
+  { group: 4, nameEn: "LIN YULING", nameKr: "린 위링", displayName: "LIN YULING" },
+  { group: 4, nameEn: "SUN RUIXI", nameKr: "순 루이시", displayName: "SUN RUIXI" },
+  { group: 4, nameEn: "", nameKr: "류성민", displayName: "류성민" },
+  { group: 4, nameEn: "", nameKr: "어혜빈", displayName: "어혜빈" },
+  { group: 4, nameEn: "", nameKr: "조수연", displayName: "조수연" },
+  { group: 4, nameEn: "", nameKr: "옥정안", displayName: "옥정안" },
+  // 5조
+  { group: 5, nameEn: "NOMURA NANAMI", nameKr: "노무라 나나미", displayName: "NOMURA NANAMI" },
+  { group: 5, nameEn: "VALIJONOVA ZULFIYABONU", nameKr: "발리조노바 줄피야보누", displayName: "VALIJONOVA ZULFIYABONU" },
+  { group: 5, nameEn: "", nameKr: "소채화", displayName: "소채화" },
+  { group: 5, nameEn: "", nameKr: "김효준", displayName: "김효준" },
+  { group: 5, nameEn: "", nameKr: "이채연", displayName: "이채연" },
+  { group: 5, nameEn: "", nameKr: "유지민", displayName: "유지민" },
+  // 6조
+  { group: 6, nameEn: "TAN SHI YING", nameKr: "탄 시잉", displayName: "TAN SHI YING" },
+  { group: 6, nameEn: "ZHANG XIAOYU", nameKr: "장 샤오위", displayName: "ZHANG XIAOYU" },
+  { group: 6, nameEn: "", nameKr: "이민성", displayName: "이민성" },
+  { group: 6, nameEn: "", nameKr: "박서진", displayName: "박서진" },
+  { group: 6, nameEn: "", nameKr: "최문경", displayName: "최문경" },
+];
+
+let currentIndex = -1;
+let statuses = new Array(students.length).fill(null);
+let isStarted = false;
+let isReverse = false;
+let callOrder = [];
+let callPos = -1;
+let koreanFemaleVoice = null;
+
+// Date
+const now = new Date();
+const days = ['일', '월', '화', '수', '목', '금', '토'];
+const dateStr = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+const fileDateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+document.getElementById('dateDisplay').textContent = dateStr;
+document.getElementById('statTotal').textContent = students.length;
+
+// Voice
+function findKoreanVoice() {
+  const voices = speechSynthesis.getVoices();
+  const ko = voices.filter(v => v.lang.startsWith('ko'));
+  return ko.find(v => v.name.includes('Google') && v.name.includes('한국'))
+    || ko.find(v => v.name.includes('Google'))
+    || ko.find(v => /female|yuna|유나|서현|heami/i.test(v.name))
+    || ko[0] || null;
+}
+
+function loadVoices() { koreanFemaleVoice = findKoreanVoice(); }
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+function speak(text, cb) {
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ko-KR';
+  u.rate = 0.85;
+  u.pitch = 1.1;
+  if (!koreanFemaleVoice) loadVoices();
+  if (koreanFemaleVoice) u.voice = koreanFemaleVoice;
+  const vi = document.getElementById('voiceIndicator');
+  vi.classList.add('active');
+  u.onend = () => { vi.classList.remove('active'); if (cb) cb(); };
+  u.onerror = () => { vi.classList.remove('active'); if (cb) cb(); };
+  speechSynthesis.speak(u);
+}
+
+function speakStudent(s) {
+  speak(`, ${s.nameKr}`);
+}
+
+function renderGrid() {
+  const container = document.getElementById('groupsContainer');
+  const groups = [1, 2, 3, 4, 5, 6];
+  container.innerHTML = groups.map(g => {
+    const members = students.map((s, i) => ({ ...s, idx: i })).filter(s => s.group === g);
+    const cells = members.map(m => {
+      let cls = '';
+      let icon = '';
+      if (m.idx === currentIndex && statuses[m.idx] === null) cls = 'calling';
+      else if (statuses[m.idx] === 'present') { cls = 'present'; icon = '<span class="status-icon">✓</span>'; }
+      else if (statuses[m.idx] === 'absent') { cls = 'absent'; icon = '<span class="status-icon">✗</span>'; }
+      else if (statuses[m.idx] === 'late') { cls = 'late'; icon = '<span class="status-icon">△</span>'; }
+      return `<div class="student-cell ${cls}" id="cell-${m.idx}">${icon}${m.displayName}</div>`;
+    }).join('');
+    return `<div class="group-box"><div class="group-header">${g}조</div><div class="group-students">${cells}</div></div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const p = statuses.filter(s => s === 'present').length;
+  const a = statuses.filter(s => s === 'absent').length;
+  const l = statuses.filter(s => s === 'late').length;
+  document.getElementById('statPresent').textContent = p;
+  document.getElementById('statAbsent').textContent = a;
+  document.getElementById('statLate').textContent = l;
+}
+
+function showCurrent() {
+  if (callPos >= callOrder.length) { finishRollCall(); return; }
+  currentIndex = callOrder[callPos];
+  const s = students[currentIndex];
+  document.getElementById('callGroup').textContent = `[${s.group}조]`;
+  document.getElementById('callName').textContent = s.displayName;
+  document.getElementById('callBar').classList.add('active');
+  renderGrid();
+  setTimeout(() => speakStudent(s), 300);
+}
+
+function startRollCall(reverse) {
+  isStarted = true;
+  isReverse = reverse;
+  // 조별 순서: 정순 1→6조, 역순 6→1조 (조 내 학생 순서 유지)
+  if (reverse) {
+    callOrder = [];
+    for (let g = 6; g >= 1; g--) {
+      students.forEach((s, i) => { if (s.group === g) callOrder.push(i); });
+    }
+  } else {
+    callOrder = students.map((_, i) => i);
+  }
+  callPos = 0;
+  currentIndex = callOrder[0];
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStartRev').disabled = true;
+  speak('지금부터 출석 부르겠습니다.', () => {
+    setTimeout(() => showCurrent(), 500);
+  });
+}
+
+function markStudent(status) {
+  if (callPos < 0 || callPos >= callOrder.length) return;
+  statuses[currentIndex] = status;
+  updateStats();
+  callPos++;
+  if (callPos < callOrder.length) showCurrent();
+  else { currentIndex = -1; renderGrid(); finishRollCall(); }
+}
+
+function speakCurrent() {
+  if (callPos >= 0 && callPos < callOrder.length) speakStudent(students[callOrder[callPos]]);
+}
+
+function finishRollCall() {
+  document.getElementById('callBar').classList.remove('active');
+  const overlay = document.getElementById('completeOverlay');
+  overlay.classList.add('active');
+  const p = statuses.filter(s => s === 'present').length;
+  const a = statuses.filter(s => s === 'absent').length;
+  const l = statuses.filter(s => s === 'late').length;
+  document.getElementById('completeSummary').textContent = `출석 ${p}명 · 지각 ${l}명 · 결석 ${a}명`;
+
+  const listEl = document.getElementById('absentList');
+  const issues = students.filter((_, i) => statuses[i] === 'absent' || statuses[i] === 'late');
+  if (issues.length === 0) {
+    listEl.innerHTML = '<p class="all-present-msg">🎉 전원 출석!</p>';
+  } else {
+    listEl.innerHTML = issues.map(s => {
+      const idx = students.indexOf(s);
+      const st = statuses[idx];
+      const tagCls = st === 'absent' ? 'tag-absent' : 'tag-late';
+      const tagTxt = st === 'absent' ? '결석' : '지각';
+      const itemCls = st === 'late' ? 'absent-item late-item' : 'absent-item';
+      const name = s.nameEn ? `${s.displayName} (${s.nameKr})` : s.displayName;
+      return `<div class="${itemCls}"><span>[${s.group}조] ${name}</span><span class="tag ${tagCls}">${tagTxt}</span></div>`;
+    }).join('');
+  }
+  speak('출석 체크가 완료되었습니다.');
+}
+
+function downloadRecord() {
+  const p = statuses.filter(s => s === 'present').length;
+  const a = statuses.filter(s => s === 'absent').length;
+  const l = statuses.filter(s => s === 'late').length;
+
+  let c = `과목: ${COURSE_NAME}\n`;
+  c += `날짜: ${dateStr}\n`;
+  c += `========================================\n\n`;
+  c += `[요약]\n`;
+  c += `전체: ${students.length}명 | 출석: ${p}명 | 지각: ${l}명 | 결석: ${a}명\n\n`;
+
+  if (a > 0) {
+    c += `[결석]\n`;
+    students.forEach((s, i) => {
+      if (statuses[i] === 'absent') {
+        const name = s.nameEn ? `${s.displayName} (${s.nameKr})` : s.displayName;
+        c += `  - [${s.group}조] ${name}\n`;
+      }
+    });
+    c += `\n`;
+  }
+  if (l > 0) {
+    c += `[지각]\n`;
+    students.forEach((s, i) => {
+      if (statuses[i] === 'late') {
+        const name = s.nameEn ? `${s.displayName} (${s.nameKr})` : s.displayName;
+        c += `  - [${s.group}조] ${name}\n`;
+      }
+    });
+    c += `\n`;
+  }
+
+  const blob = new Blob(['\uFEFF' + c], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${COURSE_NAME}_${fileDateStr}.txt`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetAll() {
+  currentIndex = -1;
+  callPos = -1;
+  callOrder = [];
+  statuses = new Array(students.length).fill(null);
+  isStarted = false;
+  document.getElementById('completeOverlay').classList.remove('active');
+  document.getElementById('callBar').classList.remove('active');
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStartRev').disabled = false;
+  updateStats();
+  renderGrid();
+}
+
+document.addEventListener('keydown', e => {
+  if (!isStarted || currentIndex >= students.length) return;
+  switch (e.key) {
+    case '1': markStudent('present'); break;
+    case '2': markStudent('late'); break;
+    case '3': markStudent('absent'); break;
+    case 'r': case 'R': speakCurrent(); break;
+  }
+});
+
+renderGrid();
+updateStats();
+</script>
+</body>
+</html>
