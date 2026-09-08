@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>경제저널리즘 — 출석 체크</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0c0f14; --surface:#151921; --surface2:#1c2230; --border:#2a3142;
+  --text:#e8ecf4; --text-dim:#7a849a; --accent:#4ecdc4; --accent-glow:rgba(78,205,196,.15);
+  --present:#2ecc71; --present-bg:rgba(46,204,113,.1); --absent:#e74c3c; --absent-bg:rgba(231,76,60,.1);
+  --late:#f39c12; --late-bg:rgba(243,156,18,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+body::before{content:'';position:fixed;inset:-50%;background:radial-gradient(ellipse at 30% 20%,rgba(78,205,196,.03),transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(78,205,196,.02),transparent 50%);z-index:-1}
+.layout{display:flex;flex-direction:column;height:100vh;padding:14px 20px 10px;max-width:1480px;margin:0 auto}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:14px;flex-shrink:0}
+.header-left h1{font-size:1.18rem;font-weight:800;background:linear-gradient(135deg,var(--accent),#82e0d8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-left .date,.header-left .course-meta{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-dim);margin-top:2px}
+.stats-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.stat-chip{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.72rem;font-family:'JetBrains Mono',monospace}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%} .total .dot{background:var(--accent)} .present .dot{background:var(--present)} .late .dot{background:var(--late)} .absent .dot{background:var(--absent)}
+.btn-start{background:linear-gradient(135deg,var(--accent),#3dbeb6);color:white;padding:7px 14px;font-size:.76rem;border-radius:8px;border:none;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;transition:.2s}
+.btn-start.reverse{background:linear-gradient(135deg,#f39c12,#e67e22)} .btn-start:hover{filter:brightness(1.13)} .btn-start:disabled{opacity:.4;cursor:default;filter:none}
+.voice-select{max-width:210px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:.68rem;font-family:'Noto Sans KR',sans-serif;outline:none}
+.call-bar{display:none;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--accent);box-shadow:0 0 30px var(--accent-glow);border-radius:12px;padding:11px 18px;margin-bottom:10px;flex-shrink:0;animation:fadeIn .25s ease}
+.call-bar.active{display:flex} @keyframes fadeIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+.voice-indicator{display:none;align-items:center;gap:3px} .voice-indicator.active{display:flex}
+.voice-bar{width:3px;height:14px;background:var(--accent);border-radius:2px;animation:voicePulse .6s ease-in-out infinite alternate} .voice-bar:nth-child(2){animation-delay:.15s} .voice-bar:nth-child(3){animation-delay:.3s} .voice-bar:nth-child(4){animation-delay:.15s}
+@keyframes voicePulse{0%{height:5px;opacity:.4}100%{height:18px;opacity:1}}
+.call-name{font-size:1.42rem;font-weight:900;letter-spacing:.01em;flex:1;line-height:1.15}
+.call-name .kr{display:block;font-size:.85rem;font-weight:600;color:var(--accent);margin-top:4px}
+.call-buttons{display:flex;gap:7px;align-items:center} .btn{border:none;border-radius:8px;padding:9px 18px;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:.2s} .btn:hover{filter:brightness(1.15)} .btn:active{transform:scale(.96)}
+.btn-present{background:var(--present);color:#fff} .btn-late{background:var(--late);color:#fff} .btn-absent{background:var(--absent);color:#fff} .btn-speak{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 13px}
+.kbd-hints{display:flex;gap:10px;font-size:.64rem;color:var(--text-dim);margin-left:4px} .kbd{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:'JetBrains Mono',monospace;font-size:.61rem;margin-right:2px}
+.grid-area{flex:1;display:flex;flex-direction:column;min-height:0}
+.student-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));gap:5px;flex:1;min-height:0}
+.student-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2px 2px;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-size:.78rem;font-weight:600;transition:.25s;position:relative;line-height:1.08;min-width:0;overflow:hidden}
+.student-cell .main-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.98rem;font-weight:800;letter-spacing:-.025em} .student-cell .kr-name{font-size:.70rem;color:var(--accent);font-weight:700;margin-top:1px;white-space:nowrap} .student-cell .meta{font-size:.50rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-top:1px;white-space:nowrap}
+.student-cell.calling{border-color:var(--accent);background:var(--accent-glow);box-shadow:0 0 16px var(--accent-glow);animation:pulse 1.2s ease-in-out infinite} @keyframes pulse{50%{box-shadow:0 0 28px rgba(78,205,196,.25)}}
+.student-cell.present{background:var(--present-bg);border-color:rgba(46,204,113,.3)} .student-cell.absent{background:var(--absent-bg);border-color:rgba(231,76,60,.3)} .student-cell.late{background:var(--late-bg);border-color:rgba(243,156,18,.3)} .status-icon{position:absolute;top:3px;right:5px;font-size:.6rem}
+.complete-overlay{position:fixed;inset:0;background:rgba(12,15,20,.9);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px)} .complete-overlay.active{display:flex}
+.complete-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 38px;text-align:center;max-width:560px;width:92%;max-height:82vh;overflow-y:auto} .complete-box h2{font-size:1.35rem;margin-bottom:6px} .summary{color:var(--text-dim);margin-bottom:20px;font-size:.86rem}
+.absent-item{padding:8px 12px;background:var(--absent-bg);border-radius:6px;margin-bottom:4px;font-size:.82rem;display:flex;justify-content:space-between;text-align:left;gap:12px} .late-item{background:var(--late-bg)} .tag{font-size:.68rem;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:4px;font-weight:600;white-space:nowrap} .tag-absent{background:rgba(231,76,60,.2);color:var(--absent)} .tag-late{background:rgba(243,156,18,.2);color:var(--late)} .all-present-msg{color:var(--present);font-weight:700;margin:12px 0}
+.complete-buttons{margin-top:20px;display:flex;gap:10px;justify-content:center} .btn-dl,.btn-reset{padding:11px 22px;font-size:.86rem;border-radius:10px;border:none;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer} .btn-dl{background:linear-gradient(135deg,var(--accent),#3dbeb6);color:#fff} .btn-reset{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+@media(max-width:1100px){html,body{overflow:auto} .layout{height:auto;min-height:100vh} .student-grid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));grid-template-rows:none} .student-cell{min-height:64px} .kbd-hints{display:none}}
+@media(max-width:700px){.layout{padding:10px} .header-row{flex-direction:column;align-items:flex-start} .stats-row{justify-content:flex-start} .call-bar{flex-wrap:wrap} .call-name{width:100%;font-size:1.15rem} .student-grid{grid-template-columns:repeat(3,1fr)} .voice-select{max-width:180px}}
+</style>
+</head>
+<body>
+<div class="complete-overlay" id="completeOverlay"><div class="complete-box"><h2>출석 체크 완료</h2><div class="summary" id="completeSummary"></div><div id="absentList"></div><div class="complete-buttons"><button class="btn-dl" onclick="downloadRecord()">📥 출결 기록 다운로드</button><button class="btn-reset" onclick="resetAll()">↻ 다시 하기</button></div></div></div>
+<div class="layout">
+  <div class="header-row">
+    <div class="header-left"><h1>경제저널리즘</h1><div class="course-meta">2026학년도 2학기 · JCOMM2058-00</div><div class="date" id="dateDisplay"></div></div>
+    <div class="stats-row">
+      <button class="btn-start" id="btnStart" onclick="startRollCall(false)">▶ 호명</button><button class="btn-start reverse" id="btnStartRev" onclick="startRollCall(true)">◀ 역순</button>
+      <select class="voice-select" id="voiceSelect" title="이 기기에서 사용 가능한 한국어 음성"></select>
+      <div class="stat-chip total"><span class="dot"></span>전체 <strong id="statTotal">50</strong></div><div class="stat-chip present"><span class="dot"></span>출석 <strong id="statPresent">0</strong></div><div class="stat-chip late"><span class="dot"></span>지각 <strong id="statLate">0</strong></div><div class="stat-chip absent"><span class="dot"></span>결석 <strong id="statAbsent">0</strong></div>
+    </div>
+  </div>
+  <div class="call-bar" id="callBar"><div class="voice-indicator" id="voiceIndicator"><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div></div><div class="call-name" id="callName"></div><div class="call-buttons"><button class="btn btn-present" onclick="markStudent('present')">✓ 출석</button><button class="btn btn-late" onclick="markStudent('late')">△ 지각</button><button class="btn btn-absent" onclick="markStudent('absent')">✗ 결석</button><button class="btn btn-speak" onclick="speakCurrent()">🔊</button></div><div class="kbd-hints"><span><span class="kbd">1</span>출석</span><span><span class="kbd">2</span>지각</span><span><span class="kbd">3</span>결석</span><span><span class="kbd">R</span>재호명</span></div></div>
+  <div class="grid-area"><div class="student-grid" id="studentGrid"></div></div>
+</div>
+<script>
+const COURSE_NAME='경제저널리즘';
+const students=[
+  {
+    "no": 1,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2023105852",
+    "nameEn": "CHEN JIAQI",
+    "nameKr": "천 자치",
+    "displayName": "CHEN JIAQI",
+    "nationality": "중국"
+  },
+  {
+    "no": 2,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2024100099",
+    "nameEn": "CHEUNG SZE MAN",
+    "nameKr": "청 시 만",
+    "displayName": "CHEUNG SZE MAN",
+    "nationality": "홍콩"
+  },
+  {
+    "no": 3,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2023100108",
+    "nameEn": "CUI JIALING",
+    "nameKr": "추이 자링",
+    "displayName": "CUI JIALING",
+    "nationality": "중국"
+  },
+  {
+    "no": 4,
+    "dept": "미디어학과",
+    "year": "1",
+    "studentId": "2026106256",
+    "nameEn": "HU XIAOTING",
+    "nameKr": "후 샤오팅",
+    "displayName": "HU XIAOTING",
+    "nationality": "중국"
+  },
+  {
+    "no": 5,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2023105855",
+    "nameEn": "HUANG DI",
+    "nameKr": "황 디",
+    "displayName": "HUANG DI",
+    "nationality": "중국"
+  },
+  {
+    "no": 6,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025100151",
+    "nameEn": "LIN SHENGEN",
+    "nameKr": "린 성언",
+    "displayName": "LIN SHENGEN",
+    "nationality": "중국"
+  },
+  {
+    "no": 7,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2022100179",
+    "nameEn": "MA RAN",
+    "nameKr": "마 란",
+    "displayName": "MA RAN",
+    "nationality": "중국"
+  },
+  {
+    "no": 8,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025100159",
+    "nameEn": "ONO ASAHI",
+    "nameKr": "오노 아사히",
+    "displayName": "ONO ASAHI",
+    "nationality": "일본"
+  },
+  {
+    "no": 9,
+    "dept": "미디어학과",
+    "year": "1",
+    "studentId": "2026105941",
+    "nameEn": "TURYSBEK AIGERIM",
+    "nameKr": "투리스벡 아이게림",
+    "displayName": "TURYSBEK AIGERIM",
+    "nationality": "카자흐스탄"
+  },
+  {
+    "no": 10,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2023105868",
+    "nameEn": "WU TONGFEI",
+    "nameKr": "우 퉁페이",
+    "displayName": "WU TONGFEI",
+    "nationality": "중국"
+  },
+  {
+    "no": 11,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025100169",
+    "nameEn": "ZHANG ENJING",
+    "nameKr": "장 언징",
+    "displayName": "ZHANG ENJING",
+    "nationality": "중국"
+  },
+  {
+    "no": 12,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025100170",
+    "nameEn": "ZHANG SHIXIAN",
+    "nameKr": "장 스셴",
+    "displayName": "ZHANG SHIXIAN",
+    "nationality": "중국"
+  },
+  {
+    "no": 13,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2023105876",
+    "nameEn": "ZHONG WENXI",
+    "nameKr": "중 원시",
+    "displayName": "ZHONG WENXI",
+    "nationality": "중국"
+  },
+  {
+    "no": 14,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102766",
+    "nameEn": "",
+    "nameKr": "강민서",
+    "displayName": "강민서",
+    "nationality": ""
+  },
+  {
+    "no": 15,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2020100453",
+    "nameEn": "",
+    "nameKr": "권민경",
+    "displayName": "권민경",
+    "nationality": ""
+  },
+  {
+    "no": 16,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102769",
+    "nameEn": "",
+    "nameKr": "권예은",
+    "displayName": "권예은",
+    "nationality": ""
+  },
+  {
+    "no": 17,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102771",
+    "nameEn": "",
+    "nameKr": "김기범",
+    "displayName": "김기범",
+    "nationality": ""
+  },
+  {
+    "no": 18,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102772",
+    "nameEn": "",
+    "nameKr": "김나희",
+    "displayName": "김나희",
+    "nationality": ""
+  },
+  {
+    "no": 19,
+    "dept": "영어영문학과",
+    "year": "3",
+    "studentId": "2024102370",
+    "nameEn": "",
+    "nameKr": "김다희",
+    "displayName": "김다희",
+    "nationality": ""
+  },
+  {
+    "no": 20,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2023102678",
+    "nameEn": "",
+    "nameKr": "김동현",
+    "displayName": "김동현",
+    "nationality": ""
+  },
+  {
+    "no": 21,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102774",
+    "nameEn": "",
+    "nameKr": "김민서",
+    "displayName": "김민서",
+    "nationality": ""
+  },
+  {
+    "no": 22,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102777",
+    "nameEn": "",
+    "nameKr": "김민영",
+    "displayName": "김민영",
+    "nationality": ""
+  },
+  {
+    "no": 23,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2022103025",
+    "nameEn": "",
+    "nameKr": "김보현",
+    "displayName": "김보현",
+    "nationality": ""
+  },
+  {
+    "no": 24,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2022103026",
+    "nameEn": "",
+    "nameKr": "김서연",
+    "displayName": "김서연",
+    "nationality": ""
+  },
+  {
+    "no": 25,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2023110204",
+    "nameEn": "",
+    "nameKr": "김은희",
+    "displayName": "김은희",
+    "nationality": ""
+  },
+  {
+    "no": 26,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102786",
+    "nameEn": "",
+    "nameKr": "김지성",
+    "displayName": "김지성",
+    "nationality": ""
+  },
+  {
+    "no": 27,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2024315257",
+    "nameEn": "",
+    "nameKr": "김하영",
+    "displayName": "김하영",
+    "nationality": ""
+  },
+  {
+    "no": 28,
+    "dept": "영어영문학과",
+    "year": "3",
+    "studentId": "2022104947",
+    "nameEn": "",
+    "nameKr": "김형민",
+    "displayName": "김형민",
+    "nationality": ""
+  },
+  {
+    "no": 29,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102800",
+    "nameEn": "",
+    "nameKr": "박기민",
+    "displayName": "박기민",
+    "nationality": ""
+  },
+  {
+    "no": 30,
+    "dept": "미디어학과",
+    "year": "1",
+    "studentId": "2026104669",
+    "nameEn": "",
+    "nameKr": "박서현",
+    "displayName": "박서현",
+    "nationality": ""
+  },
+  {
+    "no": 31,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2022103038",
+    "nameEn": "",
+    "nameKr": "박수민",
+    "displayName": "박수민",
+    "nationality": ""
+  },
+  {
+    "no": 32,
+    "dept": "Hospitality경영학부",
+    "year": "4",
+    "studentId": "2021101316",
+    "nameEn": "",
+    "nameKr": "박수연",
+    "displayName": "박수연",
+    "nationality": ""
+  },
+  {
+    "no": 33,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102804",
+    "nameEn": "",
+    "nameKr": "박승현",
+    "displayName": "박승현",
+    "nationality": ""
+  },
+  {
+    "no": 34,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102811",
+    "nameEn": "",
+    "nameKr": "손예원",
+    "displayName": "손예원",
+    "nationality": ""
+  },
+  {
+    "no": 35,
+    "dept": "체육학과",
+    "year": "4",
+    "studentId": "2023110329",
+    "nameEn": "",
+    "nameKr": "송민재",
+    "displayName": "송민재",
+    "nationality": ""
+  },
+  {
+    "no": 36,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2024102653",
+    "nameEn": "",
+    "nameKr": "양예서",
+    "displayName": "양예서",
+    "nationality": ""
+  },
+  {
+    "no": 37,
+    "dept": "미디어학과",
+    "year": "1",
+    "studentId": "2026104691",
+    "nameEn": "",
+    "nameKr": "이려원",
+    "displayName": "이려원",
+    "nationality": ""
+  },
+  {
+    "no": 38,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2024102585",
+    "nameEn": "",
+    "nameKr": "이세영",
+    "displayName": "이세영",
+    "nationality": ""
+  },
+  {
+    "no": 39,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102827",
+    "nameEn": "",
+    "nameKr": "이수현",
+    "displayName": "이수현",
+    "nationality": ""
+  },
+  {
+    "no": 40,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2021103108",
+    "nameEn": "",
+    "nameKr": "이영기",
+    "displayName": "이영기",
+    "nationality": ""
+  },
+  {
+    "no": 41,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102831",
+    "nameEn": "",
+    "nameKr": "이유진",
+    "displayName": "이유진",
+    "nationality": ""
+  },
+  {
+    "no": 42,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2022103073",
+    "nameEn": "",
+    "nameKr": "이윤호",
+    "displayName": "이윤호",
+    "nationality": ""
+  },
+  {
+    "no": 43,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2025102833",
+    "nameEn": "",
+    "nameKr": "이정빈",
+    "displayName": "이정빈",
+    "nationality": ""
+  },
+  {
+    "no": 44,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2022103088",
+    "nameEn": "",
+    "nameKr": "정병훈",
+    "displayName": "정병훈",
+    "nationality": ""
+  },
+  {
+    "no": 45,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2024110185",
+    "nameEn": "",
+    "nameKr": "정선재",
+    "displayName": "정선재",
+    "nationality": ""
+  },
+  {
+    "no": 46,
+    "dept": "미디어학과",
+    "year": "4",
+    "studentId": "2023102739",
+    "nameEn": "",
+    "nameKr": "정진서",
+    "displayName": "정진서",
+    "nationality": ""
+  },
+  {
+    "no": 47,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2023102741",
+    "nameEn": "",
+    "nameKr": "최규진",
+    "displayName": "최규진",
+    "nationality": ""
+  },
+  {
+    "no": 48,
+    "dept": "미디어학과",
+    "year": "3",
+    "studentId": "2024102696",
+    "nameEn": "",
+    "nameKr": "최수현",
+    "displayName": "최수현",
+    "nationality": ""
+  },
+  {
+    "no": 49,
+    "dept": "사회학과",
+    "year": "3",
+    "studentId": "2024100592",
+    "nameEn": "",
+    "nameKr": "최지안",
+    "displayName": "최지안",
+    "nationality": ""
+  },
+  {
+    "no": 50,
+    "dept": "미디어학과",
+    "year": "2",
+    "studentId": "2023102757",
+    "nameEn": "",
+    "nameKr": "황준선",
+    "displayName": "황준선",
+    "nationality": ""
+  }
+];
+let currentIndex=-1,statuses=new Array(students.length).fill(null),isStarted=false,isReverse=false,callOrder=[],callPos=-1,koreanFemaleVoice=null;
+const now=new Date(),days=['일','월','화','수','목','금','토'];
+const dateStr=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+const fileDateStr=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+document.getElementById('dateDisplay').textContent=dateStr;
+document.getElementById('statTotal').textContent=students.length;
+
+function voiceScore(v){
+  const n=v.name.toLowerCase(); let s=0;
+  if(!v.lang.toLowerCase().startsWith('ko')) return -999;
+  if(/sunhi/.test(n)) s+=120; if(/seohyeon|seo hyeon|서현/.test(n)) s+=110; if(/jimin|ji min|지민/.test(n)) s+=105; if(/yujin|yu jin|유진/.test(n)) s+=100; if(/soonbok|soon bok|순복/.test(n)) s+=95; if(/heami|haemi|해미/.test(n)) s+=90;
+  if(/google.*(한국|korean)|한국.*google/.test(n)) s+=75;
+  if(/natural|neural|online|premium|enhanced|hd/.test(n)) s+=35;
+  if(/female|woman|여성/.test(n)) s+=20;
+  if(/injoon|hyunsu|bongjin|gookmin/.test(n)) s-=100;
+  if(v.localService===false) s+=5;
+  return s;
+}
+function loadVoices(){
+  const ko=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().startsWith('ko')).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  const sel=document.getElementById('voiceSelect'), remembered=localStorage.getItem('attendanceVoice');
+  sel.innerHTML='';
+  if(!ko.length){const o=document.createElement('option');o.textContent='한국어 기본 음성';o.value='';sel.appendChild(o);koreanFemaleVoice=null;return;}
+  ko.forEach((v,i)=>{const o=document.createElement('option');o.value=v.name;o.textContent=(i===0?'★ ':'')+v.name;o.selected=(remembered? v.name===remembered : i===0);sel.appendChild(o);});
+  koreanFemaleVoice=ko.find(v=>v.name===sel.value)||ko[0];
+  sel.onchange=()=>{koreanFemaleVoice=ko.find(v=>v.name===sel.value)||ko[0];localStorage.setItem('attendanceVoice',koreanFemaleVoice.name);speak('음성 확인입니다.');};
+}
+if('speechSynthesis' in window){speechSynthesis.onvoiceschanged=loadVoices;loadVoices();setTimeout(loadVoices,300);setTimeout(loadVoices,1000);}
+function speak(text,cb){
+  if(!('speechSynthesis' in window)){if(cb)cb();return;}
+  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=.86; u.pitch=1.04; u.volume=1;
+  if(!koreanFemaleVoice)loadVoices(); if(koreanFemaleVoice)u.voice=koreanFemaleVoice;
+  const vi=document.getElementById('voiceIndicator'); vi.classList.add('active');
+  u.onend=()=>{vi.classList.remove('active');if(cb)cb();}; u.onerror=()=>{vi.classList.remove('active');if(cb)cb();}; speechSynthesis.speak(u);
+}
+function speakStudent(s){speak(s.nameKr);}
+function studentLabel(s){return s.nameEn?`${s.nameEn} <span class="kr-name">(${s.nameKr})</span>`:s.nameKr;}
+function renderGrid(){
+  document.getElementById('studentGrid').innerHTML=students.map((s,i)=>{let cls='',icon='';if(i===currentIndex&&statuses[i]===null)cls='calling';else if(statuses[i]==='present'){cls='present';icon='<span class="status-icon">✓</span>';}else if(statuses[i]==='absent'){cls='absent';icon='<span class="status-icon">✗</span>';}else if(statuses[i]==='late'){cls='late';icon='<span class="status-icon">△</span>';}
+    const kr=s.nameEn?`<div class="kr-name">${s.nameKr}</div>`:''; return `<div class="student-cell ${cls}" id="cell-${i}">${icon}<div class="main-name">${s.displayName}</div>${kr}<div class="meta">${s.studentId}</div></div>`;}).join('');
+}
+function updateStats(){document.getElementById('statPresent').textContent=statuses.filter(s=>s==='present').length;document.getElementById('statAbsent').textContent=statuses.filter(s=>s==='absent').length;document.getElementById('statLate').textContent=statuses.filter(s=>s==='late').length;}
+function showCurrent(){if(callPos>=callOrder.length){finishRollCall();return;}currentIndex=callOrder[callPos];const s=students[currentIndex];document.getElementById('callName').innerHTML=s.nameEn?`${s.displayName}<span class="kr">${s.nameKr} · ${s.studentId}</span>`:`${s.displayName}<span class="kr">${s.studentId} · ${s.dept}</span>`;document.getElementById('callBar').classList.add('active');renderGrid();setTimeout(()=>speakStudent(s),250);}
+function startRollCall(reverse){isStarted=true;isReverse=reverse;callOrder=students.map((_,i)=>i);if(reverse)callOrder.reverse();callPos=0;currentIndex=callOrder[0];document.getElementById('btnStart').disabled=true;document.getElementById('btnStartRev').disabled=true;speak('지금부터 출석 부르겠습니다.',()=>setTimeout(showCurrent,350));}
+function markStudent(status){if(callPos<0||callPos>=callOrder.length)return;statuses[currentIndex]=status;updateStats();callPos++;if(callPos<callOrder.length)showCurrent();else{currentIndex=-1;renderGrid();finishRollCall();}}
+function speakCurrent(){if(callPos>=0&&callPos<callOrder.length)speakStudent(students[callOrder[callPos]]);}
+function finishRollCall(){document.getElementById('callBar').classList.remove('active');document.getElementById('completeOverlay').classList.add('active');const p=statuses.filter(s=>s==='present').length,a=statuses.filter(s=>s==='absent').length,l=statuses.filter(s=>s==='late').length;document.getElementById('completeSummary').textContent=`출석 ${p}명 · 지각 ${l}명 · 결석 ${a}명`;const issues=students.filter((_,i)=>statuses[i]==='absent'||statuses[i]==='late');const el=document.getElementById('absentList');if(!issues.length)el.innerHTML='<p class="all-present-msg">🎉 전원 출석!</p>';else el.innerHTML=issues.map(s=>{const idx=students.indexOf(s),st=statuses[idx],tagCls=st==='absent'?'tag-absent':'tag-late',tagTxt=st==='absent'?'결석':'지각',itemCls=st==='late'?'absent-item late-item':'absent-item',name=s.nameEn?`${s.displayName} (${s.nameKr})`:s.displayName;return `<div class="${itemCls}"><span>${name} · ${s.studentId}</span><span class="tag ${tagCls}">${tagTxt}</span></div>`;}).join('');speak('출석 체크가 완료되었습니다.');}
+function downloadRecord(){
+ const p=statuses.filter(s=>s==='present').length,a=statuses.filter(s=>s==='absent').length,l=statuses.filter(s=>s==='late').length;
+ let c=`과목: ${COURSE_NAME}
+날짜: ${dateStr}
+========================================
+
+[요약]
+전체: ${students.length}명 | 출석: ${p}명 | 지각: ${l}명 | 결석: ${a}명
+
+`;
+ const add=(title,status)=>{const arr=students.filter((_,i)=>statuses[i]===status);if(!arr.length)return;c+=`[${title}]
+`;arr.forEach(s=>{const nm=s.nameEn?`${s.displayName} (${s.nameKr})`:s.displayName;c+=`  - ${nm} | ${s.studentId} | ${s.dept} ${s.year}학년${s.nationality?' | '+s.nationality:''}
+`;});c+='\n';}; add('결석','absent');add('지각','late');
+ const blob=new Blob(['\uFEFF'+c],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=`${COURSE_NAME}_${fileDateStr}.txt`;anchor.click();URL.revokeObjectURL(url);
+}
+function resetAll(){speechSynthesis.cancel();currentIndex=-1;callPos=-1;callOrder=[];statuses=new Array(students.length).fill(null);isStarted=false;document.getElementById('completeOverlay').classList.remove('active');document.getElementById('callBar').classList.remove('active');document.getElementById('btnStart').disabled=false;document.getElementById('btnStartRev').disabled=false;updateStats();renderGrid();}
+document.addEventListener('keydown',e=>{if(!isStarted||currentIndex<0)return;if(e.key==='1')markStudent('present');else if(e.key==='2')markStudent('late');else if(e.key==='3')markStudent('absent');else if(e.key==='r'||e.key==='R')speakCurrent();});
+renderGrid();updateStats();
+</script>
+</body></html>

@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매체철학 — 조별 출석 체크</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0f15; --surface:#141a23; --surface2:#1b2330; --border:#293446;
+  --text:#edf2f8; --dim:#8995a8; --accent:#51d1c8; --accent2:#82e4de;
+  --accent-bg:rgba(81,209,200,.11); --present:#31d17c; --present-bg:rgba(49,209,124,.11);
+  --absent:#ff625f; --absent-bg:rgba(255,98,95,.11); --late:#ffb13b; --late-bg:rgba(255,177,59,.11);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text)}
+body{overflow:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 18% 5%,rgba(81,209,200,.055),transparent 35%),radial-gradient(circle at 88% 90%,rgba(143,168,255,.04),transparent 35%)}
+.layout{height:100vh;max-width:1740px;margin:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none}
+.title-wrap{min-width:180px}
+h1{font-size:1.16rem;font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.date{font:600 .68rem 'JetBrains Mono',monospace;color:var(--dim);margin-top:1px}
+.controls{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.btn{border:0;border-radius:8px;padding:7px 13px;font:700 .74rem 'Noto Sans KR',sans-serif;cursor:pointer;transition:.16s;color:white}
+.btn:hover{filter:brightness(1.12)} .btn:active{transform:scale(.97)} .btn:disabled{opacity:.36;cursor:default}
+.start{background:linear-gradient(135deg,var(--accent),#38bdb4)} .reverse{background:linear-gradient(135deg,#ffad32,#e88919)}
+.voice-select{max-width:190px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:.69rem;outline:none}
+.voice-test{background:var(--surface2);border:1px solid var(--border);padding:6px 10px;color:var(--text)}
+.chip{display:flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid var(--border);background:var(--surface);border-radius:8px;font:600 .68rem 'JetBrains Mono',monospace;white-space:nowrap}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent)} .present-dot{background:var(--present)} .late-dot{background:var(--late)} .absent-dot{background:var(--absent)}
+.callbar{display:none;align-items:center;gap:10px;flex:none;min-height:55px;padding:7px 11px;border:1px solid var(--accent);background:var(--surface);box-shadow:0 0 24px rgba(81,209,200,.10);border-radius:10px}
+.callbar.active{display:flex}
+.call-group{font:800 .78rem 'JetBrains Mono',monospace;color:var(--accent);white-space:nowrap}
+.call-name-wrap{flex:1;min-width:0}
+.call-name{font-size:1.72rem;font-weight:900;letter-spacing:-.035em;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.call-pron{font-size:.7rem;font-weight:700;color:var(--text-dim);margin-top:2px}
+.call-actions{display:flex;gap:5px}
+.mark{padding:7px 16px} .p{background:var(--present)} .l{background:var(--late)} .a{background:var(--absent)} .speak{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px}
+.voice-bars{display:none;align-items:center;gap:2px;width:16px} .voice-bars.active{display:flex}
+.voice-bars i{display:block;width:3px;height:12px;border-radius:2px;background:var(--accent);animation:v .55s ease-in-out infinite alternate}
+.voice-bars i:nth-child(2){animation-delay:.12s} .voice-bars i:nth-child(3){animation-delay:.24s}
+@keyframes v{from{height:4px;opacity:.4}to{height:17px;opacity:1}}
+.groups{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px}
+.group{min-height:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:5px;display:flex;flex-direction:column}
+.group-head{display:flex;align-items:center;justify-content:space-between;padding:1px 3px 4px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.group-title{font:900 .78rem 'Noto Sans KR',sans-serif;color:var(--accent)}
+.group-summary{font:600 .57rem 'JetBrains Mono',monospace;color:var(--dim)}
+.members{display:grid;grid-template-rows:repeat(5,minmax(0,1fr));gap:3px;flex:1;min-height:0}
+.student{position:relative;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid var(--border);border-radius:7px;background:var(--surface2);padding:2px 5px;transition:.18s;overflow:hidden}
+.name{font-size:1.04rem;font-weight:900;letter-spacing:-.035em;line-height:1.03;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name.long{font-size:.88rem} .name.xlong{font-size:.75rem;letter-spacing:-.05em}
+.pron{font-size:.64rem;font-weight:700;color:var(--text-dim);line-height:1;margin-top:2px;white-space:nowrap}
+.meta{font:600 .55rem 'JetBrains Mono',monospace;color:var(--dim);line-height:1.05;margin-top:2px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.student.calling{border-color:var(--accent);background:var(--accent-bg);box-shadow:0 0 15px rgba(81,209,200,.17)}
+.student.present{background:var(--present-bg);border-color:rgba(49,209,124,.35)} .student.late{background:var(--late-bg);border-color:rgba(255,177,59,.38)} .student.absent{background:var(--absent-bg);border-color:rgba(255,98,95,.38)}
+.status{position:absolute;right:5px;top:3px;font-size:.62rem;font-weight:900}
+.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,10,15,.9);z-index:100;backdrop-filter:blur(7px)} .overlay.active{display:flex}
+.result{width:min(540px,92vw);max-height:82vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;text-align:center}
+.result h2{font-size:1.32rem;margin-bottom:5px} .summary{font-size:.83rem;color:var(--dim);margin-bottom:17px}
+.issue{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:6px;margin:3px 0;font-size:.78rem;text-align:left;background:var(--absent-bg)} .issue.late{background:var(--late-bg)}
+.result-actions{display:flex;justify-content:center;gap:7px;margin-top:18px} .download{background:linear-gradient(135deg,var(--accent),#38bdb4)} .reset{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.kbd{font:.55rem 'JetBrains Mono',monospace;color:var(--dim);white-space:nowrap}
+@media(max-width:1350px){.groups{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto}.group{min-height:245px}body{overflow:auto}.layout{height:auto;min-height:100vh}}
+@media(max-width:900px){.groups{grid-template-columns:repeat(2,minmax(0,1fr))}.header{align-items:flex-start;flex-direction:column}.controls{justify-content:flex-start}.callbar{flex-wrap:wrap}.call-name{font-size:1.35rem}}
+@media(max-width:560px){.groups{grid-template-columns:1fr}.group{min-height:260px}.voice-select{max-width:150px}.kbd{display:none}}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay"><div class="result"><h2>출석 체크 완료</h2><div class="summary" id="resultSummary"></div><div id="issueList"></div><div class="result-actions"><button class="btn download" onclick="downloadRecord()">📥 기록 다운로드</button><button class="btn reset" onclick="resetAll()">↻ 다시 하기</button></div></div></div>
+<div class="layout">
+  <header class="header">
+    <div class="title-wrap"><h1>매체철학 · 조별 출석</h1><div class="date" id="dateDisplay"></div></div>
+    <div class="controls">
+      <button class="btn start" id="startBtn" onclick="startRollCall(false)">▶ 호명 1→10조</button>
+      <button class="btn reverse" id="reverseBtn" onclick="startRollCall(true)">◀ 호명 10→1조</button>
+      <select class="voice-select" id="voiceSelect" title="한국어 음성 선택"></select>
+      <button class="btn voice-test" onclick="testVoice()">🔊 음성 테스트</button>
+      <div class="chip"><span class="dot"></span>전체 <b id="totalCount">50</b></div>
+      <div class="chip"><span class="dot present-dot"></span>출석 <b id="pCount">0</b></div>
+      <div class="chip"><span class="dot late-dot"></span>지각 <b id="lCount">0</b></div>
+      <div class="chip"><span class="dot absent-dot"></span>결석 <b id="aCount">0</b></div>
+    </div>
+  </header>
+  <section class="callbar" id="callbar">
+    <div class="voice-bars" id="voiceBars"><i></i><i></i><i></i></div>
+    <span class="call-group" id="callGroup"></span>
+    <div class="call-name-wrap"><div class="call-name" id="callName"></div><div class="call-pron" id="callPron"></div></div>
+    <div class="call-actions"><button class="btn mark p" onclick="mark('present')">✓ 출석</button><button class="btn mark l" onclick="mark('late')">△ 지각</button><button class="btn mark a" onclick="mark('absent')">✗ 결석</button><button class="btn speak" onclick="speakCurrent()">🔊</button></div>
+    <div class="kbd">1 출석 · 2 지각 · 3 결석 · R 재호명</div>
+  </section>
+  <main class="groups" id="groups"></main>
+</div>
+<script>
+const COURSE_NAME='매체철학';
+const students=[
+  {
+    "group": 1,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025106112",
+    "name": "INJYINN HMWE",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "미얀마",
+    "foreign": true,
+    "speakName": "인지인 흐웨"
+  },
+  {
+    "group": 1,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2023102706",
+    "name": "범시현",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "범시현"
+  },
+  {
+    "group": 1,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024102670",
+    "name": "이서현",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "이서현"
+  },
+  {
+    "group": 1,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024102693",
+    "name": "채지민",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "채지민"
+  },
+  {
+    "group": 1,
+    "major": "철학과",
+    "year": 3,
+    "studentId": "2022101849",
+    "name": "한은찬",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "한은찬"
+  },
+  {
+    "group": 2,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024100111",
+    "name": "VALIJONOVA ZULFIYABONU",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "우즈베키스탄",
+    "foreign": true,
+    "speakName": "발리조노바 줄피야보누"
+  },
+  {
+    "group": 2,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2023100115",
+    "name": "JIN ENJING",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "진 언징"
+  },
+  {
+    "group": 2,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025102806",
+    "name": "박지민",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "박지민"
+  },
+  {
+    "group": 2,
+    "major": "체육학과",
+    "year": 4,
+    "studentId": "2023110329",
+    "name": "송민재",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "송민재"
+  },
+  {
+    "group": 2,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024102696",
+    "name": "최수현",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "최수현"
+  },
+  {
+    "group": 3,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024105974",
+    "name": "WANG CHENGYUAN",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "왕 청위안"
+  },
+  {
+    "group": 3,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024100109",
+    "name": "PHYU ZIN THANT",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "미얀마",
+    "foreign": true,
+    "speakName": "퓨 진 탄트"
+  },
+  {
+    "group": 3,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2021103052",
+    "name": "강승구",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "강승구"
+  },
+  {
+    "group": 3,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2022103046",
+    "name": "서연우",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "서연우"
+  },
+  {
+    "group": 3,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025102818",
+    "name": "안지민",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "안지민"
+  },
+  {
+    "group": 4,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2023105853",
+    "name": "DEMBEREL BADAMTSETSEG",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "몽골",
+    "foreign": true,
+    "speakName": "뎀베렐 바담체체그"
+  },
+  {
+    "group": 4,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025100166",
+    "name": "WU YIZHI",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "우 이즈"
+  },
+  {
+    "group": 4,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2022103024",
+    "name": "김민희",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "김민희"
+  },
+  {
+    "group": 4,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2022103077",
+    "name": "이지희",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "이지희"
+  },
+  {
+    "group": 4,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2022103105",
+    "name": "황연준",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "황연준"
+  },
+  {
+    "group": 5,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2022100179",
+    "name": "MA RAN",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "마 란"
+  },
+  {
+    "group": 5,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2023102672",
+    "name": "강신재",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "강신재"
+  },
+  {
+    "group": 5,
+    "major": "사회학과",
+    "year": 4,
+    "studentId": "2023110066",
+    "name": "서은빈",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "서은빈"
+  },
+  {
+    "group": 5,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025102811",
+    "name": "손예원",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "손예원"
+  },
+  {
+    "group": 5,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024102694",
+    "name": "최문경",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "최문경"
+  },
+  {
+    "group": 6,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024100104",
+    "name": "LIANG ZIER",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "량 즈얼"
+  },
+  {
+    "group": 6,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025100147",
+    "name": "JI XIN CI",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "타이완",
+    "foreign": true,
+    "speakName": "지 신 츠"
+  },
+  {
+    "group": 6,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2023102700",
+    "name": "박세은",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "박세은"
+  },
+  {
+    "group": 6,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2022104964",
+    "name": "신하은",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "신하은"
+  },
+  {
+    "group": 6,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2021103103",
+    "name": "이귀환",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "이귀환"
+  },
+  {
+    "group": 7,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2023100118",
+    "name": "LIGAY ANGELINA",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "카자흐스탄",
+    "foreign": true,
+    "speakName": "리가이 안젤리나"
+  },
+  {
+    "group": 7,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025100167",
+    "name": "XU ZHIEN",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "쉬 즈언"
+  },
+  {
+    "group": 7,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024102636",
+    "name": "남혜정",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "남혜정"
+  },
+  {
+    "group": 7,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024102653",
+    "name": "양예서",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "양예서"
+  },
+  {
+    "group": 7,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024102658",
+    "name": "우영서",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "우영서"
+  },
+  {
+    "group": 8,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024100101",
+    "name": "HSU MYAT HNIN",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "미얀마",
+    "foreign": true,
+    "speakName": "수 먓 닌"
+  },
+  {
+    "group": 8,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2023100124",
+    "name": "WANG SIJIA",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "왕 쓰자"
+  },
+  {
+    "group": 8,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2023102677",
+    "name": "김나현",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "김나현"
+  },
+  {
+    "group": 8,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025102772",
+    "name": "김나희",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "김나희"
+  },
+  {
+    "group": 8,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2023102748",
+    "name": "최정윤",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "최정윤"
+  },
+  {
+    "group": 9,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024105977",
+    "name": "XU NUO",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "쉬 눠"
+  },
+  {
+    "group": 9,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024100098",
+    "name": "AIE MON",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "미얀마",
+    "foreign": true,
+    "speakName": "에이 몬"
+  },
+  {
+    "group": 9,
+    "major": "중국어학과",
+    "year": 4,
+    "studentId": "2023103240",
+    "name": "송지선",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "송지선"
+  },
+  {
+    "group": 9,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2024110183",
+    "name": "이혁진",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "이혁진"
+  },
+  {
+    "group": 9,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025102841",
+    "name": "정다혜",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "정다혜"
+  },
+  {
+    "group": 10,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025106126",
+    "name": "YANG SIYU",
+    "gender": "여",
+    "scope": "국외",
+    "nationality": "중국",
+    "foreign": true,
+    "speakName": "양 쓰위"
+  },
+  {
+    "group": 10,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2022103058",
+    "name": "유지민",
+    "gender": "남",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "유지민"
+  },
+  {
+    "group": 10,
+    "major": "미디어학과",
+    "year": 2,
+    "studentId": "2025102836",
+    "name": "이희원",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "이희원"
+  },
+  {
+    "group": 10,
+    "major": "미디어학과",
+    "year": 3,
+    "studentId": "2023102741",
+    "name": "최규진",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "최규진"
+  },
+  {
+    "group": 10,
+    "major": "미디어학과",
+    "year": 4,
+    "studentId": "2023103409",
+    "name": "하시언",
+    "gender": "여",
+    "scope": "국내",
+    "nationality": "대한민국",
+    "foreign": false,
+    "speakName": "하시언"
+  }
+];
+let statuses=new Array(students.length).fill(null);
+let currentIndex=-1, callOrder=[], callPos=-1, started=false;
+let selectedVoice=null;
+
+const now=new Date();
+const days=['일','월','화','수','목','금','토'];
+const dateText=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+const fileDate=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+document.getElementById('dateDisplay').textContent=dateText;
+
+function voiceScore(v){
+  const n=(v.name||'').toLowerCase(); let score=0;
+  if((v.lang||'').toLowerCase().startsWith('ko')) score+=100;
+  if(/sunhi|sun-hi|선히/.test(n)) score+=90;
+  if(/seohyeon|seo-hyeon|서현/.test(n)) score+=82;
+  if(/jimin|ji-min|지민/.test(n)) score+=76;
+  if(/yuna|yu-na|유나/.test(n)) score+=72;
+  if(/heami|haemi|혜미/.test(n)) score+=68;
+  if(/female|여성/.test(n)) score+=55;
+  if(/natural|neural|online/.test(n)) score+=35;
+  if(/microsoft/.test(n)) score+=18;
+  if(/google/.test(n)) score+=12;
+  if(/injoo?n|hyunsu|male|남성/.test(n)) score-=80;
+  return score;
+}
+function loadVoices(){
+  const all=speechSynthesis.getVoices();
+  const ko=all.filter(v=>(v.lang||'').toLowerCase().startsWith('ko')).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  const sel=document.getElementById('voiceSelect');
+  const prev=sel.value; sel.innerHTML='';
+  if(!ko.length){const o=document.createElement('option');o.textContent='기본 한국어 음성';o.value='';sel.appendChild(o);selectedVoice=null;return;}
+  ko.forEach((v,i)=>{const o=document.createElement('option');o.value=v.name;o.textContent=(i===0?'★ ':'')+v.name;sel.appendChild(o);});
+  if(prev && ko.some(v=>v.name===prev)) sel.value=prev; else sel.value=ko[0].name;
+  selectedVoice=ko.find(v=>v.name===sel.value)||ko[0];
+}
+speechSynthesis.onvoiceschanged=loadVoices;
+document.getElementById('voiceSelect').addEventListener('change',e=>{selectedVoice=speechSynthesis.getVoices().find(v=>v.name===e.target.value)||null;});
+loadVoices(); setTimeout(loadVoices,350);
+
+function speak(text,cb){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=.78; u.pitch=1.03; u.volume=1;
+  if(!selectedVoice) loadVoices(); if(selectedVoice) u.voice=selectedVoice;
+  const bars=document.getElementById('voiceBars'); bars.classList.add('active');
+  u.onend=()=>{bars.classList.remove('active');if(cb)cb();}; u.onerror=()=>{bars.classList.remove('active');if(cb)cb();};
+  speechSynthesis.speak(u);
+}
+function speakStudent(s){speak(`, ${s.speakName}`);}
+function testVoice(){speak('매체철학 출석을 시작합니다. 이름을 또렷하게 확인해 주세요.');}
+
+function nameClass(name){return name.length>21?'xlong':name.length>13?'long':'';}
+function grouped(){const m={};students.forEach((s,i)=>{(m[s.group]??=[]).push([s,i]);});return m;}
+function render(){
+  const gmap=grouped();
+  document.getElementById('groups').innerHTML=Object.keys(gmap).map(g=>{
+    const arr=gmap[g];
+    return `<section class="group"><div class="group-head"><span class="group-title">${g}조</span><span class="group-summary">5명</span></div><div class="members">`+
+      arr.map(([s,i])=>{
+        let cls='';let icon=''; if(i===currentIndex&&statuses[i]===null)cls='calling'; else if(statuses[i]){cls=statuses[i];icon=statuses[i]==='present'?'✓':statuses[i]==='late'?'△':'✗';}
+        const pron=s.foreign?`<div class="pron">${s.speakName}</div>`:'';
+        return `<div class="student ${cls}" id="student-${i}">${icon?`<span class="status">${icon}</span>`:''}<div class="name ${nameClass(s.name)}">${s.name}</div>${pron}<div class="meta">${s.studentId} · ${s.year}학년 · ${s.major}</div></div>`;
+      }).join('')+'</div></section>';
+  }).join('');
+}
+function updateStats(){document.getElementById('pCount').textContent=statuses.filter(x=>x==='present').length;document.getElementById('lCount').textContent=statuses.filter(x=>x==='late').length;document.getElementById('aCount').textContent=statuses.filter(x=>x==='absent').length;}
+function buildOrder(reverse){
+  const groups=[...new Set(students.map(s=>s.group))].sort((a,b)=>a-b);if(reverse)groups.reverse();
+  return groups.flatMap(g=>students.map((s,i)=>[s,i]).filter(([s])=>s.group===g).map(([,i])=>i));
+}
+function startRollCall(reverse){
+  started=true;statuses=new Array(students.length).fill(null);updateStats();callOrder=buildOrder(reverse);callPos=0;
+  document.getElementById('startBtn').disabled=true;document.getElementById('reverseBtn').disabled=true;
+  speak('지금부터 매체철학 출석을 부르겠습니다.',()=>setTimeout(showCurrent,280));
+}
+function showCurrent(){
+  if(callPos>=callOrder.length){finish();return;} currentIndex=callOrder[callPos];const s=students[currentIndex];
+  document.getElementById('callGroup').textContent=`${s.group}조`;
+  document.getElementById('callName').textContent=s.name;
+  document.getElementById('callPron').textContent=s.foreign?`${s.speakName} · ${s.nationality}`:'';
+  document.getElementById('callbar').classList.add('active');render();
+  document.getElementById(`student-${currentIndex}`)?.scrollIntoView({block:'nearest',behavior:'smooth'});
+  setTimeout(()=>speakStudent(s),220);
+}
+function mark(status){if(callPos<0||callPos>=callOrder.length)return;statuses[currentIndex]=status;updateStats();callPos++;render();if(callPos<callOrder.length)showCurrent();else finish();}
+function speakCurrent(){if(callPos>=0&&callPos<callOrder.length)speakStudent(students[callOrder[callPos]]);}
+function finish(){
+  currentIndex=-1;render();document.getElementById('callbar').classList.remove('active');
+  const p=statuses.filter(x=>x==='present').length,l=statuses.filter(x=>x==='late').length,a=statuses.filter(x=>x==='absent').length;
+  document.getElementById('resultSummary').textContent=`출석 ${p}명 · 지각 ${l}명 · 결석 ${a}명`;
+  const issues=students.map((s,i)=>[s,i]).filter(([,i])=>statuses[i]==='late'||statuses[i]==='absent');
+  document.getElementById('issueList').innerHTML=issues.length?issues.map(([s,i])=>`<div class="issue ${statuses[i]==='late'?'late':''}"><span>${s.group}조 · ${s.name}${s.foreign?` (${s.speakName})`:''}</span><b>${statuses[i]==='late'?'지각':'결석'}</b></div>`).join(''):'<div style="color:var(--present);font-weight:800;padding:10px">전원 출석</div>';
+  document.getElementById('overlay').classList.add('active');speak('출석 체크가 완료되었습니다.');
+}
+function downloadRecord(){
+  const lateCount=statuses.filter(x=>x==='late').length;
+  const absentCount=statuses.filter(x=>x==='absent').length;
+  let txt=`과목: ${COURSE_NAME}\n날짜: ${dateText}\n\n`;
+
+  txt+=`[결석] ${absentCount}명\n`;
+  const absentRows=[];
+  students.forEach((s,i)=>{
+    if(statuses[i]==='absent'){
+      const display=s.foreign?`${s.name} (${s.speakName})`:s.name;
+      absentRows.push(`${s.group}조\t${display}\t${s.studentId}`);
+    }
+  });
+  txt+=absentRows.length?absentRows.join('\n')+'\n':'없음\n';
+
+  txt+=`\n[지각] ${lateCount}명\n`;
+  const lateRows=[];
+  students.forEach((s,i)=>{
+    if(statuses[i]==='late'){
+      const display=s.foreign?`${s.name} (${s.speakName})`:s.name;
+      lateRows.push(`${s.group}조\t${display}\t${s.studentId}`);
+    }
+  });
+  txt+=lateRows.length?lateRows.join('\n')+'\n':'없음\n';
+
+  const blob=new Blob(['\uFEFF'+txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const aTag=document.createElement('a');
+  aTag.href=url;
+  aTag.download=`매체철학_결석지각_${fileDate}.txt`;
+  aTag.click();
+  URL.revokeObjectURL(url);
+}
+function resetAll(){speechSynthesis.cancel();statuses=new Array(students.length).fill(null);currentIndex=-1;callOrder=[];callPos=-1;started=false;document.getElementById('overlay').classList.remove('active');document.getElementById('callbar').classList.remove('active');document.getElementById('startBtn').disabled=false;document.getElementById('reverseBtn').disabled=false;updateStats();render();}
+document.addEventListener('keydown',e=>{if(!started||document.getElementById('overlay').classList.contains('active'))return;if(e.key==='1')mark('present');else if(e.key==='2')mark('late');else if(e.key==='3')mark('absent');else if(e.key==='r'||e.key==='R')speakCurrent();});
+render();updateStats();
+</script>
+</body></html>
